@@ -87,7 +87,7 @@
                 android:paddingEnd="12dp"
                 android:paddingBottom="4dp"
                 android:text="THEME"
-                android:textColor="#D0E0EE"
+                android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -208,7 +208,7 @@
                     android:paddingEnd="20dp"
                     android:paddingBottom="7dp"
                     android:text="▶  OPEN APPLICATION"
-                    android:textColor="#FFFFFFFF"
+                    android:textColor="@color/btn_text_color_selector"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -295,7 +295,7 @@
                     android:paddingEnd="12dp"
                     android:paddingBottom="4dp"
                     android:text="▶ LIVE AV"
-                    android:textColor="#FFFFFFFF"
+                    android:textColor="@color/btn_text_color_selector"
                     android:textSize="11sp" />
             </FrameLayout>
         </LinearLayout>
@@ -334,9 +334,9 @@
                 android:clipToPadding="false"
                 android:focusable="false"
                 android:paddingStart="32dp"
-                android:paddingTop="6dp"
+                android:paddingTop="10dp"
                 android:paddingEnd="32dp"
-                android:paddingBottom="6dp"
+                android:paddingBottom="10dp"
                 android:scrollbars="none" />
         </LinearLayout>
 
@@ -344,8 +344,8 @@
         <LinearLayout
             android:id="@+id/bottom_nav_bar"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="#8004070E"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_cyber_dock"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="36dp"
@@ -376,7 +376,7 @@
                 android:paddingEnd="14dp"
                 android:paddingBottom="5dp"
                 android:text="ALL APPS"
-                android:textColor="#D0E0EE"
+                android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
 
             <TextView
@@ -394,7 +394,7 @@
                 android:paddingEnd="14dp"
                 android:paddingBottom="5dp"
                 android:text="ARCADE"
-                android:textColor="#D0E0EE"
+                android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
 
             <TextView
@@ -411,7 +411,7 @@
                 android:paddingEnd="14dp"
                 android:paddingBottom="5dp"
                 android:text="LIVE TV"
-                android:textColor="#D0E0EE"
+                android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

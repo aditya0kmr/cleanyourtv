@@ -393,8 +393,8 @@ public class AetherHomeActivity extends Activity {
             TextView tab = new TextView(this);
             tab.setText(cat.label.toUpperCase(Locale.US));
             tab.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            tab.setTextColor(0xFFFFFFFF);
-            tab.setTextSize(12f);
+            tab.setTextColor(getResources().getColorStateList(R.color.tab_text_color_selector));
+            tab.setTextSize(12.5f);
             tab.setLetterSpacing(0.04f);
             tab.setPadding(24, 8, 24, 8);
             tab.setBackgroundResource(R.drawable.bg_cyber_tab_selector);
