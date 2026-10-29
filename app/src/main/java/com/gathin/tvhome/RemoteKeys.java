@@ -296,6 +296,7 @@ final class RemoteKeys {
         switch (target) {
             case "back": case "home": case "recents": case "mute": case "sleep":
             case "screensaver": case "settings": case "wifi": case "ignore":
+            case "iptv": case "arcade": case "terminal":
                 return true;
             default:
                 return false;
@@ -330,6 +331,21 @@ final class RemoteKeys {
                 break;
             case "wifi":
                 start(ctx, SystemSettings.intent(ctx, Settings.ACTION_WIFI_SETTINGS));
+                break;
+            case "iptv":
+                start(ctx, new Intent(ctx, MainActivity.class)
+                        .setAction(MainActivity.ACTION_VIEW_IPTV)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+                break;
+            case "arcade":
+                start(ctx, new Intent(ctx, MainActivity.class)
+                        .setAction(MainActivity.ACTION_VIEW_ARCADE)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+                break;
+            case "terminal":
+                start(ctx, new Intent(ctx, MainActivity.class)
+                        .setAction(MainActivity.ACTION_VIEW_TERMINAL)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP));
                 break;
             default:
                 break;   // "ignore", or "sleep" below Android 9: consumed, nothing to do

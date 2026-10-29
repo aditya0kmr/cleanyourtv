@@ -63,18 +63,22 @@ import android.view.Window;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
+import android.media.MediaPlayer;
 
 import androidx.annotation.NonNull;
 import androidx.dynamicanimation.animation.FloatPropertyCompat;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
@@ -86,6 +90,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -106,6 +111,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     static final String ACTION_LAUNCHER_SETTINGS = "com.gathin.tvhome.action.LAUNCHER_SETTINGS";
     /** The system input switcher, forwarded here by InputsRequestActivity while handle_view_inputs is on. */
     static final String ACTION_VIEW_INPUTS = "com.android.tv.action.VIEW_INPUTS";
+    public static final String ACTION_VIEW_IPTV = "com.gathin.tvhome.action.VIEW_IPTV";
+    public static final String ACTION_VIEW_ARCADE = "com.gathin.tvhome.action.VIEW_ARCADE";
+    public static final String ACTION_VIEW_TERMINAL = "com.gathin.tvhome.action.VIEW_TERMINAL";
     /** Tiles per row and dock slots (res/values/config.xml, columns). Set in onCreate. */
     static int COLUMNS = 4;
     private boolean rtlAppGrid;
@@ -242,6 +250,34 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView terminalLogText;
     private TextView heroCategoryText;
     private View lastFocusedBeforeOverlay;
+
+    // AETHER IPTV Engine
+    private FrameLayout iptvOverlay;
+    private LinearLayout iptvBrowserContainer;
+    private View iptvHeaderRow;
+    private View iptvCategoryScroll;
+    private View iptvDivider;
+    private View iptvLeftPane;
+    private FrameLayout iptvStageFrame;
+    private VideoView iptvVideoView;
+    private View iptvBufferingHud;
+    private View iptvStageHud;
+    private View iptvFullscreenHud;
+    private TextView iptvCurrentChannelName;
+    private TextView iptvFullscreenChannelName;
+    private TextView iptvStreamSpecs;
+    private TextView iptvChannelCount;
+    private RecyclerView iptvChannelsRecycler;
+    private LinearLayout iptvCategoryTabs;
+    private com.gathin.tvhome.iptv.ChannelAdapter iptvAdapter;
+    private final List<com.gathin.tvhome.iptv.Channel> iptvAllChannels = new ArrayList<>();
+    private final Map<String, List<com.gathin.tvhome.iptv.Channel>> iptvChannelsByCategory = new LinkedHashMap<>();
+    private String iptvCurrentCategory = "ALL";
+    private boolean iptvFullscreenMode = false;
+    private final Handler iptvHudHandler = new Handler(Looper.getMainLooper());
+    private final Runnable hideFullscreenHudRunnable = () -> {
+        if (iptvFullscreenHud != null) iptvFullscreenHud.setVisibility(View.GONE);
+    };
     /** Module cards (res/values/config.xml, module_cards): discovered on resume, shown only after the owner's Show. */
     private boolean moduleCards;
     /** config settings_key_keycodes / settings_key_panel, so the Settings button works on Home without HomeKeyService. */
@@ -504,6 +540,34 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (btnCloseTerminal != null) {
             btnCloseTerminal.setOnClickListener(v -> hideOverlays());
         }
+
+        // Initialize IPTV Stream Deck
+        iptvOverlay = findViewById(R.id.iptvOverlay);
+        iptvBrowserContainer = findViewById(R.id.iptvBrowserContainer);
+        iptvHeaderRow = findViewById(R.id.iptvHeaderRow);
+        iptvCategoryScroll = findViewById(R.id.iptvCategoryScroll);
+        iptvDivider = findViewById(R.id.iptvDivider);
+        iptvLeftPane = findViewById(R.id.iptvLeftPane);
+        iptvStageFrame = findViewById(R.id.iptvStageFrame);
+        iptvVideoView = findViewById(R.id.iptvVideoView);
+        iptvBufferingHud = findViewById(R.id.iptvBufferingHud);
+        iptvStageHud = findViewById(R.id.iptvStageHud);
+        iptvFullscreenHud = findViewById(R.id.iptvFullscreenHud);
+        iptvCurrentChannelName = findViewById(R.id.iptvCurrentChannelName);
+        iptvFullscreenChannelName = findViewById(R.id.iptvFullscreenChannelName);
+        iptvStreamSpecs = findViewById(R.id.iptvStreamSpecs);
+        iptvChannelCount = findViewById(R.id.iptvChannelCount);
+        iptvChannelsRecycler = findViewById(R.id.iptvChannelsRecycler);
+        iptvCategoryTabs = findViewById(R.id.iptvCategoryTabs);
+        View btnCloseIptv = findViewById(R.id.btnCloseIptv);
+        if (btnCloseIptv != null) {
+            btnCloseIptv.setOnClickListener(v -> hideOverlays());
+        }
+        View btnIptvFullscreen = findViewById(R.id.btnIptvFullscreen);
+        if (btnIptvFullscreen != null) {
+            btnIptvFullscreen.setOnClickListener(v -> toggleIptvFullscreen());
+        }
+        initIptvEngine();
         hero = findViewById(R.id.hero);
         // The hero is now a group (name, and the cinematic lines): without this every fade of the default
         // shelf would render it through an offscreen buffer first, as the glow above notes.
@@ -882,6 +946,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnWifi.setOnKeyListener(pillKeys);
         btnVpn.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
+        View btnIptv = findViewById(R.id.btnIptv);
+        if (btnIptv != null) {
+            btnIptv.setOnClickListener(v -> showIptv());
+            btnIptv.setOnKeyListener(pillKeys);
+        }
         View btnArcade = findViewById(R.id.btnArcade);
         if (btnArcade != null) {
             btnArcade.setOnClickListener(v -> showArcade());
@@ -916,7 +985,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
         if (advancedEffects) {
             List<View> pills = new ArrayList<>();
-            for (View p : new View[]{btnInputs, btnWifi, btnVpn, btnArcade, btnTerminal, btnTheme, btnReorder, btnLibraryTop, btnSettings}) {
+            for (View p : new View[]{btnInputs, btnWifi, btnVpn, btnIptv, btnArcade, btnTerminal, btnTheme, btnReorder, btnLibraryTop, btnSettings}) {
                 if (p != null) pills.add(p);
             }
             pills.addAll(topAppButtons);
@@ -958,7 +1027,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     .build(), vpnCallback);
         }
         // Not after recreate(): the launch intent survives it and would open the settings again.
-        if (savedInstanceState == null && !openLauncherSettingsIfAsked(getIntent())) openInputsIfAsked(getIntent());
+        if (savedInstanceState == null && !openLauncherSettingsIfAsked(getIntent())) {
+            if (!openInputsIfAsked(getIntent())) {
+                if (!openIptvIfAsked(getIntent())) {
+                    if (!openArcadeIfAsked(getIntent())) {
+                        openTerminalIfAsked(getIntent());
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1018,6 +1095,27 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         return true;
     }
 
+    private boolean openIptvIfAsked(Intent intent) {
+        if (intent == null || !ACTION_VIEW_IPTV.equals(intent.getAction())) return false;
+        setIntent(new Intent(Intent.ACTION_MAIN));
+        showIptv();
+        return true;
+    }
+
+    private boolean openArcadeIfAsked(Intent intent) {
+        if (intent == null || !ACTION_VIEW_ARCADE.equals(intent.getAction())) return false;
+        setIntent(new Intent(Intent.ACTION_MAIN));
+        showArcade();
+        return true;
+    }
+
+    private boolean openTerminalIfAsked(Intent intent) {
+        if (intent == null || !ACTION_VIEW_TERMINAL.equals(intent.getAction())) return false;
+        setIntent(new Intent(Intent.ACTION_MAIN));
+        showTerminal();
+        return true;
+    }
+
     /**
      * Home pressed while Home is already in front: singleTask delivers it here, then onResume runs.
      * Back to the top with the first dock tile focused, like the stock launcher. Back from an app
@@ -1028,6 +1126,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onNewIntent(intent);
         if (openLauncherSettingsIfAsked(intent)) return;
         if (openInputsIfAsked(intent)) return;
+        if (openIptvIfAsked(intent)) return;
+        if (openArcadeIfAsked(intent)) return;
+        if (openTerminalIfAsked(intent)) return;
         if (intent == null || !intent.hasCategory(Intent.CATEGORY_HOME)) return;
         if (gameDay != null && !stopped) gameDay.read();
         grid.scrollToPosition(0);
@@ -1273,6 +1374,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         resumed = false;
+        if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE) {
+            stopIptvPlayback();
+        }
         root.removeCallbacks(showIdleClock);
         endReorder();   // Home or another app while reordering keeps the order so far
         wallpaperPlayer.stop();
@@ -1386,9 +1490,29 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int code = event.getKeyCode();
             if (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE) {
+                if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE) {
+                    if (iptvFullscreenMode) {
+                        toggleIptvFullscreen();
+                        return true;
+                    }
+                    hideOverlays();
+                    return true;
+                }
                 if ((arcadeOverlay != null && arcadeOverlay.getVisibility() == View.VISIBLE)
                         || (terminalOverlay != null && terminalOverlay.getVisibility() == View.VISIBLE)) {
                     hideOverlays();
+                    return true;
+                }
+            }
+            if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE && iptvFullscreenMode) {
+                if (code == KeyEvent.KEYCODE_DPAD_UP) {
+                    tuneNextChannel(-1);
+                    return true;
+                } else if (code == KeyEvent.KEYCODE_DPAD_DOWN) {
+                    tuneNextChannel(1);
+                    return true;
+                } else if (code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) {
+                    toggleIptvFullscreen();
                     return true;
                 }
             }
@@ -1984,8 +2108,218 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
     }
 
+    private void showIptv() {
+        lastFocusedBeforeOverlay = getCurrentFocus();
+        if (iptvOverlay != null) {
+            iptvOverlay.setVisibility(View.VISIBLE);
+            if (iptvChannelsRecycler != null && iptvAdapter != null && iptvAdapter.getItemCount() > 0) {
+                iptvChannelsRecycler.requestFocus();
+            } else {
+                View close = findViewById(R.id.btnCloseIptv);
+                if (close != null) close.requestFocus();
+            }
+            com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp();
+        }
+    }
+
+    private void stopIptvPlayback() {
+        if (iptvVideoView != null) {
+            try {
+                iptvVideoView.stopPlayback();
+            } catch (Exception ignored) {}
+        }
+        if (iptvFullscreenMode) {
+            toggleIptvFullscreen();
+        }
+        if (iptvBufferingHud != null) {
+            iptvBufferingHud.setVisibility(View.GONE);
+        }
+    }
+
+    private void playChannel(com.gathin.tvhome.iptv.Channel channel) {
+        if (channel == null || iptvVideoView == null) return;
+        if (iptvCurrentChannelName != null) iptvCurrentChannelName.setText(channel.getName());
+        if (iptvFullscreenChannelName != null) iptvFullscreenChannelName.setText(channel.getName());
+        if (iptvStreamSpecs != null) {
+            iptvStreamSpecs.setText(channel.getCategory() + " • " + channel.getCountry() + " • CONNECTING QUANTUM FEED...");
+        }
+        if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.VISIBLE);
+
+        try {
+            iptvVideoView.stopPlayback();
+            iptvVideoView.setVideoURI(Uri.parse(channel.getUrl()));
+            iptvVideoView.start();
+        } catch (Exception e) {
+            if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.GONE);
+            if (iptvStreamSpecs != null) iptvStreamSpecs.setText("STREAM LINK ERROR: " + e.getMessage());
+        }
+    }
+
+    private void toggleIptvFullscreen() {
+        iptvFullscreenMode = !iptvFullscreenMode;
+        if (iptvBrowserContainer == null || iptvStageFrame == null) return;
+
+        if (iptvFullscreenMode) {
+            iptvBrowserContainer.setPadding(0, 0, 0, 0);
+            if (iptvHeaderRow != null) iptvHeaderRow.setVisibility(View.GONE);
+            if (iptvCategoryScroll != null) iptvCategoryScroll.setVisibility(View.GONE);
+            if (iptvDivider != null) iptvDivider.setVisibility(View.GONE);
+            if (iptvLeftPane != null) iptvLeftPane.setVisibility(View.GONE);
+            if (iptvStageHud != null) iptvStageHud.setVisibility(View.GONE);
+            iptvStageFrame.setBackground(null);
+            iptvStageFrame.setPadding(0, 0, 0, 0);
+            showFullscreenHudBriefly();
+        } else {
+            iptvBrowserContainer.setPadding((int)(28 * density), (int)(28 * density), (int)(28 * density), (int)(28 * density));
+            if (iptvHeaderRow != null) iptvHeaderRow.setVisibility(View.VISIBLE);
+            if (iptvCategoryScroll != null) iptvCategoryScroll.setVisibility(View.VISIBLE);
+            if (iptvDivider != null) iptvDivider.setVisibility(View.VISIBLE);
+            if (iptvLeftPane != null) iptvLeftPane.setVisibility(View.VISIBLE);
+            if (iptvStageHud != null) iptvStageHud.setVisibility(View.VISIBLE);
+            iptvStageFrame.setBackgroundResource(R.drawable.glass_panel);
+            iptvStageFrame.setPadding((int)(6 * density), (int)(6 * density), (int)(6 * density), (int)(6 * density));
+            if (iptvFullscreenHud != null) iptvFullscreenHud.setVisibility(View.GONE);
+            if (iptvChannelsRecycler != null) iptvChannelsRecycler.requestFocus();
+        }
+        com.gathin.tvhome.audio.CyberSoundSynth.get().playChirp();
+    }
+
+    private void showFullscreenHudBriefly() {
+        if (iptvFullscreenHud == null) return;
+        iptvFullscreenHud.setVisibility(View.VISIBLE);
+        iptvHudHandler.removeCallbacks(hideFullscreenHudRunnable);
+        iptvHudHandler.postDelayed(hideFullscreenHudRunnable, 3500);
+    }
+
+    private void tuneNextChannel(int delta) {
+        List<com.gathin.tvhome.iptv.Channel> list = iptvChannelsByCategory.get(iptvCurrentCategory);
+        if (list == null || list.isEmpty()) list = iptvAllChannels;
+        if (list.isEmpty()) return;
+
+        int currentPos = iptvAdapter != null ? iptvAdapter.getSelectedPosition() : 0;
+        int nextPos = (currentPos + delta + list.size()) % list.size();
+        if (iptvAdapter != null) {
+            iptvAdapter.setSelectedPosition(nextPos);
+            if (iptvChannelsRecycler != null) {
+                iptvChannelsRecycler.scrollToPosition(nextPos);
+            }
+        }
+        playChannel(list.get(nextPos));
+        showFullscreenHudBriefly();
+        com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+    }
+
+    private void initIptvEngine() {
+        if (iptvChannelsRecycler == null) return;
+
+        iptvAdapter = new com.gathin.tvhome.iptv.ChannelAdapter((channel, position) -> playChannel(channel));
+        iptvChannelsRecycler.setLayoutManager(new LinearLayoutManager(this));
+        iptvChannelsRecycler.setAdapter(iptvAdapter);
+        iptvChannelsRecycler.setItemAnimator(null);
+
+        if (iptvVideoView != null) {
+            iptvVideoView.setOnPreparedListener(mp -> {
+                if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.GONE);
+                mp.start();
+                if (iptvStreamSpecs != null) {
+                    iptvStreamSpecs.setText("HLS LIVE • QUANTUM BUFFER OPTIMAL • 1080p READY");
+                }
+            });
+            iptvVideoView.setOnErrorListener((mp, what, extra) -> {
+                if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.GONE);
+                if (iptvStreamSpecs != null) {
+                    iptvStreamSpecs.setText("STREAM LINK OFFLINE [TRY NEXT CHANNEL]");
+                }
+                return true;
+            });
+            iptvVideoView.setOnInfoListener((mp, what, extra) -> {
+                if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
+                    if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.VISIBLE);
+                } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END) {
+                    if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.GONE);
+                }
+                return false;
+            });
+        }
+
+        new Thread(() -> {
+            List<com.gathin.tvhome.iptv.Channel> channels = com.gathin.tvhome.iptv.M3uParser.loadChannels(MainActivity.this);
+            Map<String, List<com.gathin.tvhome.iptv.Channel>> grouped = com.gathin.tvhome.iptv.M3uParser.groupByCategory(channels);
+            runOnUiThread(() -> {
+                iptvAllChannels.clear();
+                iptvAllChannels.addAll(channels);
+                iptvChannelsByCategory.clear();
+                iptvChannelsByCategory.putAll(grouped);
+                if (iptvChannelCount != null) {
+                    iptvChannelCount.setText(channels.size() + " CHANNELS ONLINE");
+                }
+                buildIptvCategoryTabs();
+                selectIptvCategory("ALL");
+            });
+        }).start();
+    }
+
+    private void buildIptvCategoryTabs() {
+        if (iptvCategoryTabs == null) return;
+        iptvCategoryTabs.removeAllViews();
+
+        for (String cat : iptvChannelsByCategory.keySet()) {
+            List<com.gathin.tvhome.iptv.Channel> list = iptvChannelsByCategory.get(cat);
+            int count = list != null ? list.size() : 0;
+            TextView tab = new TextView(this);
+            tab.setText(cat + " (" + count + ")");
+            tab.setTextColor(0xFFFFFFFF);
+            tab.setTextSize(12);
+            tab.setBackgroundResource(R.drawable.pill_bg);
+            tab.setPadding((int) (14 * density), (int) (6 * density), (int) (14 * density), (int) (6 * density));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMarginEnd((int) (8 * density));
+            tab.setLayoutParams(lp);
+            tab.setFocusable(true);
+            tab.setClickable(true);
+
+            tab.setOnClickListener(v -> selectIptvCategory(cat));
+            tab.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    v.animate().scaleX(1.06f).scaleY(1.06f).setDuration(120).start();
+                    com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+                }
+            });
+            iptvCategoryTabs.addView(tab);
+        }
+    }
+
+    private void selectIptvCategory(String category) {
+        iptvCurrentCategory = category;
+        List<com.gathin.tvhome.iptv.Channel> list = iptvChannelsByCategory.get(category);
+        if (list == null) list = iptvAllChannels;
+
+        if (iptvAdapter != null) {
+            iptvAdapter.setChannels(list);
+            iptvAdapter.setSelectedPosition(0);
+        }
+
+        if (iptvCategoryTabs != null) {
+            for (int i = 0; i < iptvCategoryTabs.getChildCount(); i++) {
+                View child = iptvCategoryTabs.getChildAt(i);
+                if (child instanceof TextView) {
+                    String txt = ((TextView) child).getText().toString();
+                    child.setActivated(txt.startsWith(category + " (") || txt.equals(category));
+                }
+            }
+        }
+    }
+
     private void hideOverlays() {
         boolean wasOpen = false;
+        if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE) {
+            stopIptvPlayback();
+            iptvOverlay.setVisibility(View.GONE);
+            wasOpen = true;
+        }
         if (arcadeOverlay != null && arcadeOverlay.getVisibility() == View.VISIBLE) {
             arcadeOverlay.setVisibility(View.GONE);
             wasOpen = true;
