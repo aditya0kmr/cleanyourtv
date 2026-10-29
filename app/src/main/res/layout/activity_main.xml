@@ -122,6 +122,21 @@
         android:orientation="vertical"
         android:alpha="0">
 
+        <!-- Category & Resolution Badge -->
+        <TextView
+            android:id="@+id/heroCategoryText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STREAMING · 1080P"
+            android:textColor="#00E5FF"
+            android:textSize="12sp"
+            android:letterSpacing="0.14"
+            android:textAllCaps="true"
+            android:fontFamily="@string/font_medium"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="4dp"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/heroName"
             android:layout_width="wrap_content"
@@ -373,6 +388,20 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnArcade"
+                    style="@style/TopButton"
+                    android:text="ARCADE"
+                    android:drawableStart="@drawable/ic_arcade"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
+                    android:id="@+id/btnTerminal"
+                    style="@style/TopButton"
+                    android:text="CONSOLE"
+                    android:drawableStart="@drawable/ic_terminal"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnTheme"
                     style="@style/TopButton"
                     android:text="THEME"
@@ -418,4 +447,87 @@
         android:layout_height="10dp"
         android:alpha="0"
         android:importantForAccessibility="no" />
+
+    <!-- Holo-Arcade Minigame Overlay -->
+    <FrameLayout
+        android:id="@+id/arcadeOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FA04060C"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <com.gathin.tvhome.arcade.HoloArcadeView
+            android:id="@+id/holoArcade"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true" />
+    </FrameLayout>
+
+    <!-- Cyber Terminal Console Overlay -->
+    <FrameLayout
+        android:id="@+id/terminalOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FA040710"
+        android:padding="48dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/glass_panel"
+            android:padding="28dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="AETHER // CYBER DIAGNOSTIC CONSOLE"
+                    android:textColor="#00E5FF"
+                    android:textSize="18sp"
+                    android:fontFamily="@string/font_medium"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/btnCloseTerminal"
+                    style="@style/TopButton"
+                    android:text="CLOSE [BACK]"
+                    android:focusable="true"
+                    android:textColor="#FFFFFFFF" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp"
+                android:background="#3300E5FF" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical">
+
+                <TextView
+                    android:id="@+id/terminalLogText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#CC88A0B2"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="4dp"
+                    android:typeface="monospace" />
+            </ScrollView>
+        </LinearLayout>
+    </FrameLayout>
 </FrameLayout>

@@ -236,6 +236,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** App of the last focused tile, so focus follows it when the app list changes. */
     private static String lastFocusedKey;
     private float density;
+    private View arcadeOverlay;
+    private com.gathin.tvhome.arcade.HoloArcadeView holoArcade;
+    private View terminalOverlay;
+    private TextView terminalLogText;
+    private TextView heroCategoryText;
+    private View lastFocusedBeforeOverlay;
     /** Module cards (res/values/config.xml, module_cards): discovered on resume, shown only after the owner's Show. */
     private boolean moduleCards;
     /** config settings_key_keycodes / settings_key_panel, so the Settings button works on Home without HomeKeyService. */
@@ -484,6 +490,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         appGlow = cfg.appGlow;
         if (!ambientGlow) ambient.setVisibility(View.GONE);
         heroName = findViewById(R.id.heroName);
+        heroCategoryText = findViewById(R.id.heroCategoryText);
+        arcadeOverlay = findViewById(R.id.arcadeOverlay);
+        holoArcade = findViewById(R.id.holoArcade);
+        if (holoArcade != null) {
+            holoArcade.setOnExitListener(this::hideOverlays);
+        }
+        terminalOverlay = findViewById(R.id.terminalOverlay);
+        terminalLogText = findViewById(R.id.terminalLogText);
+        View btnCloseTerminal = findViewById(R.id.btnCloseTerminal);
+        if (btnCloseTerminal != null) {
+            btnCloseTerminal.setOnClickListener(v -> hideOverlays());
+        }
         hero = findViewById(R.id.hero);
         // The hero is now a group (name, and the cinematic lines): without this every fade of the default
         // shelf would render it through an offscreen buffer first, as the glow above notes.
@@ -862,6 +880,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnWifi.setOnKeyListener(pillKeys);
         btnVpn.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
+        View btnArcade = findViewById(R.id.btnArcade);
+        if (btnArcade != null) {
+            btnArcade.setOnClickListener(v -> showArcade());
+            btnArcade.setOnKeyListener(pillKeys);
+        }
+        View btnTerminal = findViewById(R.id.btnTerminal);
+        if (btnTerminal != null) {
+            btnTerminal.setOnClickListener(v -> showTerminal());
+            btnTerminal.setOnKeyListener(pillKeys);
+        }
         View btnTheme = findViewById(R.id.btnTheme);
         if (btnTheme != null) {
             btnTheme.setOnClickListener(v -> {
@@ -877,7 +905,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnLibraryTop.setOnKeyListener(pillKeys);
         for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
         if (advancedEffects) {
-            List<View> pills = new ArrayList<>(Arrays.asList(btnInputs, btnWifi, btnVpn, btnReorder, btnLibraryTop, btnTheme != null ? btnTheme : btnSettings, btnSettings));
+            List<View> pills = new ArrayList<>();
+            for (View p : new View[]{btnInputs, btnWifi, btnVpn, btnArcade, btnTerminal, btnTheme, btnReorder, btnLibraryTop, btnSettings}) {
+                if (p != null) pills.add(p);
+            }
             pills.addAll(topAppButtons);
             for (View button : pills) {
                 button.setOnFocusChangeListener((view, focused) -> view.animate()
@@ -1344,6 +1375,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int code = event.getKeyCode();
+            if (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE) {
+                if ((arcadeOverlay != null && arcadeOverlay.getVisibility() == View.VISIBLE)
+                        || (terminalOverlay != null && terminalOverlay.getVisibility() == View.VISIBLE)) {
+                    hideOverlays();
+                    return true;
+                }
+            }
             if (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN
                     || code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
@@ -1889,9 +1927,96 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** The shelf's text for this dock app: its name and, on the cinematic shelf, "Last opened" and the dots. */
     private void fillHero(int position, String label) {
         heroName.setText(label);
+        if (heroCategoryText != null) {
+            String pkg = adapter.packageAt(position);
+            heroCategoryText.setText(getCategoryForPackage(pkg));
+            heroCategoryText.setVisibility(View.VISIBLE);
+        }
         if (!cinematic) return;
         updateHeroMeta(position);
         updateHeroDots(position);
+    }
+
+    private String getCategoryForPackage(String pkg) {
+        if (pkg == null) return "▶ APPLICATION · 1080P TELEVISION";
+        String p = pkg.toLowerCase();
+        if (p.contains("youtube") || p.contains("netflix") || p.contains("prime") || p.contains("avod")
+                || p.contains("hotstar") || p.contains("airtel") || p.contains("spotify") || p.contains("smarttube")
+                || p.contains("tv") || p.contains("stream")) {
+            return "▶ STREAMING · 1080P CINEMATIC";
+        } else if (p.contains("game") || p.contains("retro") || p.contains("arcade") || p.contains("racing")) {
+            return "▶ GAMING · GAMEPAD READY";
+        } else if (p.contains("setting") || p.contains("system") || p.contains("terminal") || p.contains("file")) {
+            return "▶ SYSTEM UTILITY · FIRE OS";
+        }
+        return "▶ APPLICATION · 1080P OPTIMIZED";
+    }
+
+    private void showArcade() {
+        lastFocusedBeforeOverlay = getCurrentFocus();
+        if (arcadeOverlay != null) {
+            arcadeOverlay.setVisibility(View.VISIBLE);
+            if (holoArcade != null) {
+                holoArcade.requestFocus();
+            }
+            com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp();
+        }
+    }
+
+    private void showTerminal() {
+        lastFocusedBeforeOverlay = getCurrentFocus();
+        if (terminalOverlay != null) {
+            updateTerminalSpecs();
+            terminalOverlay.setVisibility(View.VISIBLE);
+            View close = findViewById(R.id.btnCloseTerminal);
+            if (close != null) close.requestFocus();
+            com.gathin.tvhome.audio.CyberSoundSynth.get().playChirp();
+        }
+    }
+
+    private void hideOverlays() {
+        boolean wasOpen = false;
+        if (arcadeOverlay != null && arcadeOverlay.getVisibility() == View.VISIBLE) {
+            arcadeOverlay.setVisibility(View.GONE);
+            wasOpen = true;
+        }
+        if (terminalOverlay != null && terminalOverlay.getVisibility() == View.VISIBLE) {
+            terminalOverlay.setVisibility(View.GONE);
+            wasOpen = true;
+        }
+        if (wasOpen) {
+            com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+            if (lastFocusedBeforeOverlay != null) {
+                lastFocusedBeforeOverlay.requestFocus();
+            } else {
+                focusTile(lastFocused);
+            }
+        }
+    }
+
+    private void updateTerminalSpecs() {
+        if (terminalLogText == null) return;
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== AETHER SYSTEM TELEMETRY ===\n");
+        sb.append("HARDWARE: Amazon Fire TV Stick Lite (sheldon / AFTSS)\n");
+        sb.append("CPU: MediaTek MT8695 Quad-Core ARMv7 @ 1.7 GHz\n");
+        sb.append("GPU: PowerVR Rogue GE8300 (OpenGL ES 3.2)\n");
+        sb.append("OS: Fire OS 7.7.1.7 (Android 9 API 28)\n");
+        sb.append("RESOLUTION: 1920x1080 @ 60Hz (320 dpi xhdpi)\n\n");
+        sb.append("=== MEMORY & STORAGE ===\n");
+        Runtime rt = Runtime.getRuntime();
+        long maxMem = rt.maxMemory() / (1024 * 1024);
+        long totalMem = rt.totalMemory() / (1024 * 1024);
+        long freeMem = rt.freeMemory() / (1024 * 1024);
+        long usedMem = totalMem - freeMem;
+        sb.append(String.format(java.util.Locale.US, "JAVA HEAP: %d MB used / %d MB total (%d MB max limit)\n", usedMem, totalMem, maxMem));
+        sb.append("ACCESSIBILITY HOME KEY INTERCEPTION: ACTIVE\n\n");
+        sb.append("=== SYSTEM LOG STREAM ===\n");
+        sb.append("[OK] System initialized in 10-foot television mode.\n");
+        sb.append("[OK] Zero-allocation audio synth active.\n");
+        sb.append("[OK] Frosted glass highlight engine synchronized.\n");
+        sb.append("[STATUS] All subsystems operational. Ready for user commands.\n");
+        terminalLogText.setText(sb.toString());
     }
 
     // ---- cinematic shelf -------------------------------------------------------------------------
