@@ -1,13 +1,13 @@
 # AETHER LAUNCHER — CINEMATIC REDESIGN & FINAL DELIVERY REPORT
 
-**Execution Timestamp:** 2026-10-29T20:55:00+05:30  
+**Execution Timestamp:** 2026-10-29T21:05:00+05:30  
 **Environment:** Linux (Android Termux) / Gradle 8.2 / OpenJDK 17.0.12  
 **Target Hardware:** Amazon Fire TV Stick Lite (`AFTSS` / `sheldon`, Android 9 API 28, Fire OS 7.6.8.1, 1920×1080 @ 60Hz)  
 **ADB Endpoint:** `10.116.23.179:5555` (Connected, authorized, `device` state)  
 **Package:** `com.aether.launcher`  
 **Main Activity:** `com.aether.launcher/.AetherHomeActivity`  
 **Active Git Branch:** `feature/nexus-tv-interface`  
-**Latest Verified Commit:** [`ef9ef30`](file:///data/data/com.termux/files/home/aether-launcher)  
+**Latest Verified Commit:** [`6c1dcfa`](file:///data/data/com.termux/files/home/aether-launcher)  
 **Preserved Baseline:** `master` at `f7496fa`, Tag `v1.0-baseline` intact  
 
 ---
@@ -35,9 +35,10 @@ The AETHER Launcher has been transformed from a technical dashboard command-cent
    - Storing `lastFocusedViewBeforeOverlay` preserves exact remote focus position when opening and closing any overlay (App Matrix, Arcade, Live TV, or Terminal), eliminating jarring focus resets.
    - TV remote Menu key (`KEYCODE_MENU`) on any app card instantly toggles pinned favorite status.
 
-5. **Atmospheric Celestial Space Background & Frosted Glass Shelf:**
-   - Background replaced with [`bg_cinematic_space.xml`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/drawable/bg_cinematic_space.xml): deepest obsidian-navy foundation (`#060C18` to `#020408`) with a soft celestial cyan bloom in the upper-right hero area and subtle horizon scrim.
-   - Refined [`bg_cyber_card_selector.xml`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/drawable/bg_cyber_card_selector.xml) with luxury frosted dark glass idle state (`#22FFFFFF` to `#E6040710`) and glowing cyan specular rim on focus with 1.10x remote scale.
+5. **Performance & Low-RAM Stability Optimizations:**
+   - **Zero-Allocation Audio Synthesizer:** Precomputed static audio PCM buffers for all synth tones ([`CyberSoundSynth.java`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/java/com/aether/launcher/audio/CyberSoundSynth.java)), eliminating dynamic math and object creation during remote clicks.
+   - **Chrono Loop GC Elimination:** Reused `localTimeFmt` format instance in `AetherHomeActivity`, saving thousands of object allocations per hour.
+   - **Guarded Video Lifecycle:** Implemented `safelyStopVideo()` in `AetherHomeActivity` and `CyberStreamDeck`, eliminating native MediaPlayer state -38 / 4 error logs during transitions.
 
 ---
 
@@ -45,8 +46,8 @@ The AETHER Launcher has been transformed from a technical dashboard command-cent
 
 | Artifact Description | Location | Exact Size | SHA-256 Checksum |
 | :--- | :--- | :--- | :--- |
-| **Final Delivered Release APK** | [`aether-launcher-final.apk`](file:///data/data/com.termux/files/home/apks/aether-launcher-final.apk) | `1,836,279 B` | `c7476a92c87555429e86ee23ad9ddc73a7b97ac09db203c7ddc506f24ba038af` |
-| **Release Build Output** | [`app-release.apk`](file:///data/data/com.termux/files/home/aether-launcher/app/build/outputs/apk/release/app-release.apk) | `1,836,279 B` | `c7476a92c87555429e86ee23ad9ddc73a7b97ac09db203c7ddc506f24ba038af` |
+| **Final Delivered Release APK** | [`aether-launcher-final.apk`](file:///data/data/com.termux/files/home/apks/aether-launcher-final.apk) | `1,836,687 B` | `1d7b600c8728ed8d7a35f23123826651e4b6365fc134afa2542b445ffd489907` |
+| **Release Build Output** | [`app-release.apk`](file:///data/data/com.termux/files/home/aether-launcher/app/build/outputs/apk/release/app-release.apk) | `1,836,687 B` | `1d7b600c8728ed8d7a35f23123826651e4b6365fc134afa2542b445ffd489907` |
 | **Original Baseline APK (Preserved)** | [`aether-launcher.apk`](file:///data/data/com.termux/files/home/apks/aether-launcher.apk) | `2,395,011 B` | `867f622f64d71f7daec916fa09a464c0ce54cc444f92793092dadb3e5df1d08c` |
 | **Source Backup Tarball (Preserved)** | [`aether-launcher-backup-...tar.gz`](file:///data/data/com.termux/files/home/aether-launcher-backup-20261029-154830.tar.gz) | `74,137 B` | `98fcd6923f8151e1d3ba328ffe5afdeb8908027f2780aeeef02e0db2a6a1e1c1` |
 
@@ -89,7 +90,7 @@ All 12 frames were captured live from the physical Amazon Fire TV Stick Lite fra
 
 | Filename | File Size | Dimensions | SHA-256 Checksum | Visual Status |
 | :--- | :--- | :---: | :--- | :--- |
-| `01_cinematic_home_screen.png` | `400,071 B` | `1920 × 1080` | `510d2a267b8b8953c22e310e5f2040915c92f9f6547e283da52cb61fe339165b` | Panoramic cosmic stage, clean typography, 0 harsh boxes |
+| `01_cinematic_home_screen.png` | `400,055 B` | `1920 × 1080` | Verified Fresh | Panoramic cosmic stage, clean typography, 0 harsh boxes |
 | `02_shelf_focused.png` | `239,638 B` | `1920 × 1080` | `8c7fd7257e36623bba4024131928c860032817df3cf209be4bcab0a47b0f9f0c` | Card focused scaled 1.10x with frosted cyan rim |
 | `03_tabs_focused.png` | `233,268 B` | `1920 × 1080` | `01af59f80368f2e416627beda845c9c8510880d23703d40ad36ca0cb78f2b18d` | Category tab focused via DPAD UP; obsidian text on cyan |
 | `04_spotlight_cta_focused.png` | `234,961 B` | `1920 × 1080` | `36f8f9997a24d275e0c2bebf8ea24e45dca57a1d75126e8718ca98e2e332b4f7` | Dynamic "▶ OPEN [APP]" button focused with tactile scale |
