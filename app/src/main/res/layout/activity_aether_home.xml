@@ -26,9 +26,10 @@
                 android:id="@+id/txt_tactical_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="monospace"
-                android:text="// AETHER — NEXUS //"
-                android:textColor="#00F0FF"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06"
+                android:text="AETHER // NEXUS"
+                android:textColor="#FFFFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -37,20 +38,21 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="monospace"
+                android:fontFamily="sans-serif"
                 android:gravity="center"
-                android:text="[ 00:00:00 UTC // STARDATE 2026.302 ]"
-                android:textColor="#F0F8FF"
-                android:textSize="11sp" />
+                android:letterSpacing="0.02"
+                android:text="00:00:00 UTC  ·  STARDATE 2026.302"
+                android:textColor="#D0E0EE"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/txt_telemetry_top"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
-                android:fontFamily="monospace"
-                android:text="NET_ONLINE // 144M"
-                android:textColor="#00F0FF"
+                android:fontFamily="sans-serif"
+                android:text="WI-FI ONLINE · 144M"
+                android:textColor="#00E5FF"
                 android:textSize="11sp" />
 
             <TextView
@@ -60,14 +62,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:fontFamily="monospace"
+                android:fontFamily="sans-serif-medium"
                 android:paddingStart="12dp"
                 android:paddingTop="4dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="4dp"
-                android:text="[ THEME ]"
-                android:textColor="#00F0FF"
-                android:textSize="10sp" />
+                android:text="THEME: CYBER"
+                android:textColor="#00E5FF"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- 2. MIDDLE SPLIT STAGE: HERO MONITOR & DYNAMIC DOSSIER -->
@@ -87,7 +89,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="10dp"
-                android:layout_weight="1.2"
+                android:layout_weight="1.3"
                 android:background="@drawable/glass_panel"
                 android:padding="8dp">
 
@@ -134,20 +136,20 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="monospace"
-                            android:text="CH 01 // NASA TV LIVE"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="CH 01 · NASA TV LIVE"
                             android:textColor="#F0F8FF"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/hero_stream_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="monospace"
-                            android:text="SIGNAL // 1080p ONLINE"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="SIGNAL · 1080p ONLINE"
                             android:textColor="#00FF66"
-                            android:textSize="9sp" />
+                            android:textSize="10sp" />
 
                         <TextView
                             android:id="@+id/btn_hero_prev_ch"
@@ -157,14 +159,14 @@
                             android:background="@drawable/bg_cyber_button_selector"
                             android:clickable="true"
                             android:focusable="true"
-                            android:fontFamily="monospace"
-                            android:paddingStart="6dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingStart="8dp"
                             android:paddingTop="2dp"
-                            android:paddingEnd="6dp"
+                            android:paddingEnd="8dp"
                             android:paddingBottom="2dp"
                             android:text="&lt;"
-                            android:textColor="#00F0FF"
-                            android:textSize="10sp" />
+                            android:textColor="#00E5FF"
+                            android:textSize="11sp" />
 
                         <TextView
                             android:id="@+id/btn_hero_next_ch"
@@ -174,14 +176,14 @@
                             android:background="@drawable/bg_cyber_button_selector"
                             android:clickable="true"
                             android:focusable="true"
-                            android:fontFamily="monospace"
-                            android:paddingStart="6dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingStart="8dp"
                             android:paddingTop="2dp"
-                            android:paddingEnd="6dp"
+                            android:paddingEnd="8dp"
                             android:paddingBottom="2dp"
                             android:text="&gt;"
-                            android:textColor="#00F0FF"
-                            android:textSize="10sp" />
+                            android:textColor="#00E5FF"
+                            android:textSize="11sp" />
                     </LinearLayout>
                 </FrameLayout>
 
@@ -192,17 +194,18 @@
                     android:layout_gravity="top"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="4dp">
+                    android:padding="6dp">
 
                     <TextView
                         android:id="@+id/txt_hero_mode"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:fontFamily="monospace"
-                        android:text="// HERO STAGE: TACTICAL CORE //"
-                        android:textColor="#00F0FF"
-                        android:textSize="10sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.04"
+                        android:text="CINEMATIC CORE"
+                        android:textColor="#00E5FF"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -212,14 +215,14 @@
                         android:background="@drawable/bg_cyber_button_selector"
                         android:clickable="true"
                         android:focusable="true"
-                        android:fontFamily="monospace"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="[ SWITCH TO AV MONITOR ]"
-                        android:textColor="#00F0FF"
-                        android:textSize="9sp" />
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="12dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="4dp"
+                        android:text="▶ LIVE AV MONITOR"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="10sp" />
                 </LinearLayout>
             </FrameLayout>
 
@@ -228,7 +231,7 @@
                 android:id="@+id/container_dossier_stage"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.95"
+                android:layout_weight="0.9"
                 android:background="@drawable/glass_panel"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -237,10 +240,11 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="monospace"
-                    android:text="// ACTIVE APPLICATION DOSSIER //"
-                    android:textColor="#00F0FF"
-                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.05"
+                    android:text="ACTIVE APPLICATION DOSSIER"
+                    android:textColor="#809BB0"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
 
                 <!-- Dynamic Focused App Profile -->
@@ -253,11 +257,11 @@
 
                     <ImageView
                         android:id="@+id/dossier_app_icon"
-                        android:layout_width="54dp"
-                        android:layout_height="54dp"
+                        android:layout_width="58dp"
+                        android:layout_height="58dp"
                         android:layout_marginEnd="12dp"
                         android:background="@drawable/bg_cyber_card"
-                        android:padding="4dp"
+                        android:padding="6dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_launcher" />
 
@@ -271,11 +275,11 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
-                            android:fontFamily="monospace"
+                            android:fontFamily="sans-serif-medium"
                             android:maxLines="1"
                             android:text="AETHER — NEXUS"
                             android:textColor="#FFFFFF"
-                            android:textSize="15sp"
+                            android:textSize="18sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -283,10 +287,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="monospace"
-                            android:text="STATUS: INSTALLED // [SYSTEM]"
-                            android:textColor="#00F0FF"
-                            android:textSize="10sp" />
+                            android:fontFamily="sans-serif-medium"
+                            android:text="APPLICATION · SYSTEM"
+                            android:textColor="#00E5FF"
+                            android:textSize="11sp" />
 
                         <TextView
                             android:id="@+id/dossier_app_package"
@@ -294,11 +298,11 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:ellipsize="end"
-                            android:fontFamily="monospace"
+                            android:fontFamily="sans-serif"
                             android:maxLines="1"
-                            android:text="com.aether.launcher"
-                            android:textColor="#7A8E9E"
-                            android:textSize="9sp" />
+                            android:text="com.aether.launcher · 1080p Compatible"
+                            android:textColor="#809BB0"
+                            android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -308,57 +312,58 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="#2000F0FF" />
+                    android:background="#15FFFFFF" />
 
-                <!-- Hardware Telemetry Radar -->
+                <!-- Hardware Performance Radar -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="monospace"
-                    android:text="// HARDWARE TELEMETRY RADAR //"
-                    android:textColor="#00F0FF"
-                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.05"
+                    android:text="DEVICE PERFORMANCE"
+                    android:textColor="#809BB0"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/radar_cpu_gauge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:fontFamily="monospace"
-                    android:text="CPU LOAD: [■■■■■□□□□□] 48% (4 CORES)"
-                    android:textColor="#F0F8FF"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="5dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="CPU LOAD: 48% · QUAD-CORE 64-BIT"
+                    android:textColor="#D0E0EE"
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/radar_ram_gauge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="monospace"
-                    android:text="RAM LOAD: [■■■■■■□□□□] 62% (570MB / 922MB)"
-                    android:textColor="#F0F8FF"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="MEMORY: 570 MB / 922 MB (62%) · 352 MB FREE"
+                    android:textColor="#D0E0EE"
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/radar_power_gauge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="monospace"
-                    android:text="TV POWER: AC LINE ACTIVE // 32.4°C"
-                    android:textColor="#F0F8FF"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="POWER: AC CONNECTED · 32.4°C COOL"
+                    android:textColor="#D0E0EE"
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/radar_net_gauge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="monospace"
-                    android:text="NETWORK : 5GHz WIFI // 144 Mbps ONLINE"
-                    android:textColor="#F0F8FF"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="WI-FI: 5GHz · 144 Mbps ONLINE"
+                    android:textColor="#D0E0EE"
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -418,10 +423,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="monospace"
-                android:text="[D-PAD] NAVIGATE  [OK] LAUNCH  [UP] HERO/TABS  [DOWN] CONSOLE"
-                android:textColor="#6000F0FF"
-                android:textSize="10sp" />
+                android:fontFamily="sans-serif"
+                android:text="▲ HERO STAGE   ◀ ▶ BROWSE APPS   ● LAUNCH   ▼ SHORTCUTS"
+                android:textColor="#809BB0"
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/btn_open_terminal"
@@ -431,15 +436,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:fontFamily="monospace"
-                android:paddingStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="11dp"
                 android:paddingTop="4dp"
-                android:paddingEnd="10dp"
+                android:paddingEnd="11dp"
                 android:paddingBottom="4dp"
                 android:text="TERMINAL"
-                android:textColor="#00F0FF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textColor="#D0E0EE"
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/btn_open_apps"
@@ -449,15 +453,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:fontFamily="monospace"
-                android:paddingStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="11dp"
                 android:paddingTop="4dp"
-                android:paddingEnd="10dp"
+                android:paddingEnd="11dp"
                 android:paddingBottom="4dp"
                 android:text="APP MATRIX"
-                android:textColor="#00F0FF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textColor="#D0E0EE"
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/btn_open_arcade"
@@ -467,15 +470,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:fontFamily="monospace"
-                android:paddingStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="11dp"
                 android:paddingTop="4dp"
-                android:paddingEnd="10dp"
+                android:paddingEnd="11dp"
                 android:paddingBottom="4dp"
-                android:text="ARCADE"
-                android:textColor="#00F0FF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:text="HOLO ARCADE"
+                android:textColor="#D0E0EE"
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/btn_open_iptv"
@@ -485,15 +487,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:fontFamily="monospace"
-                android:paddingStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="11dp"
                 android:paddingTop="4dp"
-                android:paddingEnd="10dp"
+                android:paddingEnd="11dp"
                 android:paddingBottom="4dp"
-                android:text="FULL AV"
-                android:textColor="#00F0FF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:text="LIVE AV"
+                android:textColor="#D0E0EE"
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/btn_add_widget"
@@ -502,14 +503,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:fontFamily="monospace"
-                android:paddingStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="11dp"
                 android:paddingTop="4dp"
-                android:paddingEnd="10dp"
+                android:paddingEnd="11dp"
                 android:paddingBottom="4dp"
                 android:text="+WIDGET"
-                android:textColor="#00F0FF"
-                android:textSize="10sp" />
+                android:textColor="#D0E0EE"
+                android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
 

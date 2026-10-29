@@ -90,7 +90,7 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
 
         void bind(AppModel app) {
             label.setText(app.getAppName());
-            category.setText("[" + app.getCategory().label + "]");
+            category.setText(app.getCategory().label);
             category.setTextColor(HologramTheme.get().getPrimary());
             icon.setImageDrawable(app.getIcon());
             pinDot.setVisibility(app.isPinned() ? View.VISIBLE : View.GONE);

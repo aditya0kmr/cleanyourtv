@@ -3,6 +3,7 @@ package com.aether.launcher;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -350,52 +351,36 @@ public class AetherHomeActivity extends Activity {
     }
 
     private void refreshTelemetryDisplay() {
-        // Top Status Bar
+        // Top Status Bar: clean status pills without slashes
         if (telemetry.isAcPowered()) {
-            txtTelemetryTop.setText(String.format(Locale.US, "NET %s // %dM · RAM %d%% · AC ONLINE",
+            txtTelemetryTop.setText(String.format(Locale.US, "WI-FI %s · %dM · RAM %d%% · AC",
                     telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps(), telemetry.getRamUsagePercent()));
         } else {
-            txtTelemetryTop.setText(String.format(Locale.US, "NET %s // %dM · RAM %d%% · BAT %.1fV",
+            txtTelemetryTop.setText(String.format(Locale.US, "WI-FI %s · %dM · RAM %d%% · BAT %.1fV",
                     telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps(), telemetry.getRamUsagePercent(), telemetry.getBatteryVoltageV()));
         }
 
-        // Right Stage Hardware Radar
+        // Right Stage Hardware Radar: clean metrics without distracting ASCII blocks
         int ramPercent = telemetry.getRamUsagePercent();
         long totalMb = telemetry.getTotalRamBytes() / (1024 * 1024);
         long availMb = telemetry.getAvailRamBytes() / (1024 * 1024);
         long usedMb = totalMb - availMb;
 
-        radarRamGauge.setText(String.format(Locale.US, "RAM LOAD: %s %d%% (%dMB / %dMB)",
-                buildGaugeBar(ramPercent), ramPercent, usedMb, totalMb));
+        radarRamGauge.setText(String.format(Locale.US, "MEMORY: %d MB / %d MB (%d%%) · %d MB FREE",
+                usedMb, totalMb, ramPercent, availMb));
 
-        // Simulated CPU load proportional to RAM & animations
         int cpuPercent = Math.min(95, Math.max(15, (int) (ramPercent * 0.75f + (isHeroVideoActive ? 22 : 8))));
-        radarCpuGauge.setText(String.format(Locale.US, "CPU LOAD: %s %d%% (4 CORES)",
-                buildGaugeBar(cpuPercent), cpuPercent));
+        radarCpuGauge.setText(String.format(Locale.US, "CPU LOAD: %d%% · QUAD-CORE 64-BIT", cpuPercent));
 
         if (telemetry.isAcPowered()) {
-            radarPowerGauge.setText(String.format(Locale.US, "TV POWER: AC LINE ACTIVE // %.1f°C", telemetry.getBatteryTempC()));
+            radarPowerGauge.setText(String.format(Locale.US, "POWER: AC CONNECTED · %.1f°C COOL", telemetry.getBatteryTempC()));
         } else {
-            radarPowerGauge.setText(String.format(Locale.US, "TV POWER: BATTERY %.1fV // %.1f°C",
+            radarPowerGauge.setText(String.format(Locale.US, "POWER: BATTERY %.1fV · %.1f°C",
                     telemetry.getBatteryVoltageV(), telemetry.getBatteryTempC()));
         }
 
-        radarNetGauge.setText(String.format(Locale.US, "NETWORK : %s // %d Mbps ONLINE",
+        radarNetGauge.setText(String.format(Locale.US, "WI-FI: %s · %d Mbps ONLINE",
                 telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps()));
-    }
-
-    private String buildGaugeBar(int percent) {
-        int blocks = Math.max(0, Math.min(10, percent / 10));
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < 10; i++) {
-            if (i < blocks) {
-                sb.append("■");
-            } else {
-                sb.append("□");
-            }
-        }
-        sb.append("]");
-        return sb.toString();
     }
 
     private void startChronoLoop() {
@@ -403,7 +388,7 @@ public class AetherHomeActivity extends Activity {
             @Override
             public void run() {
                 String timeUtc = utcFormat.format(new Date());
-                txtChronoStardate.setText(String.format("[ %s UTC // %s ]", timeUtc, telemetry.getStardateString()));
+                txtChronoStardate.setText(String.format(Locale.US, "%s UTC  ·  %s", timeUtc, telemetry.getStardateString()));
                 chronoHandler.postDelayed(this, 1000);
             }
         });
@@ -445,11 +430,12 @@ public class AetherHomeActivity extends Activity {
         shelfCategoryTabs.removeAllViews();
         for (AppModel.Category cat : AppModel.Category.values()) {
             TextView tab = new TextView(this);
-            tab.setText("[ " + cat.label + " ]");
-            tab.setFontFeatureSettings("monospace");
-            tab.setTextColor(0xFF00F0FF);
-            tab.setTextSize(10f);
-            tab.setPadding(20, 6, 20, 6);
+            tab.setText(cat.label.toUpperCase(Locale.US));
+            tab.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            tab.setTextColor(0xFFFFFFFF);
+            tab.setTextSize(12f);
+            tab.setLetterSpacing(0.04f);
+            tab.setPadding(24, 8, 24, 8);
             tab.setBackgroundResource(R.drawable.bg_cyber_tab_selector);
             tab.setFocusable(true);
             tab.setClickable(true);
@@ -489,9 +475,9 @@ public class AetherHomeActivity extends Activity {
     private void updateAppDossier(AppModel app) {
         if (app == null) return;
         dossierAppName.setText(app.getAppName());
-        dossierAppCategory.setText("STATUS: INSTALLED // [" + app.getCategory().label + "]");
+        dossierAppCategory.setText("APPLICATION  ·  " + app.getCategory().label.toUpperCase(Locale.US));
         dossierAppCategory.setTextColor(theme.getPrimary());
-        dossierAppPackage.setText(app.getPackageName());
+        dossierAppPackage.setText(app.getPackageName() + "  ·  1080p Compatible");
         if (app.getIcon() != null) {
             dossierAppIcon.setImageDrawable(app.getIcon());
         }

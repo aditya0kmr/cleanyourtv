@@ -382,22 +382,20 @@ public class ArcReactorView extends View {
     private void drawChronometer(Canvas canvas, float cx, float cy, float radius) {
         long now = System.currentTimeMillis();
         String timeStr = clockFormat.format(new Date(now));
-        int msFraction = (int) ((now % 1000) / 10);
-        String fullTime = String.format(Locale.US, "%s:%02d", timeStr, msFraction);
 
-        textClockPaint.setTextSize(radius * 0.46f);
-        canvas.drawText(fullTime, cx, cy + (textClockPaint.getTextSize() * 0.35f), textClockPaint);
+        // Clean, stable clock without restless millisecond jitter
+        textClockPaint.setColor(0xFFFFFFFF);
+        textClockPaint.setTextSize(radius * 0.48f);
+        canvas.drawText(timeStr, cx, cy + (textClockPaint.getTextSize() * 0.35f), textClockPaint);
 
-        // Top Status (Battery / AC & RAM %)
-        int ramLvl = telemetry != null ? telemetry.getRamUsagePercent() : 48;
-        String pwrStr = (telemetry != null && telemetry.isAcPowered()) ? "AC LINE" :
-                (telemetry != null ? "PWR " + telemetry.getBatteryLevel() + "%" : "PWR 100%");
-        String stat = String.format(Locale.US, "%s // RAM %d%%", pwrStr, ramLvl);
+        // Top Status (Restrained System State)
+        textSubPaint.setColor(theme.getPrimary());
         textSubPaint.setTextSize(radius * 0.18f);
-        canvas.drawText(stat, cx, cy - (radius * 0.45f), textSubPaint);
+        canvas.drawText("SYSTEM OPTIMAL", cx, cy - (radius * 0.45f), textSubPaint);
 
         // Bottom Stardate
-        String dateStr = telemetry != null ? telemetry.getStardateString() : "STARDATE // 2026.302";
+        String dateStr = telemetry != null ? telemetry.getStardateString() : "STARDATE 2026.302";
+        textSubPaint.setColor(0xCCFFFFFF);
         canvas.drawText(dateStr, cx, cy + (radius * 0.70f), textSubPaint);
     }
 

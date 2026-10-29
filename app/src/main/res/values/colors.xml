@@ -22,8 +22,11 @@
     <!-- CleanYourTV / tvOS Luxury Glass Palette -->
     <color name="tv_bg_black">#04070E</color>
     <color name="tv_glass_stroke">#3500E5FF</color>
+    <color name="tv_glass_stroke_subtle">#1AFFFFFF</color>
+    <color name="tv_glass_surface">#14FFFFFF</color>
     <color name="tv_accent_cyan">#00E5FF</color>
     <color name="tv_accent_blue">#00B0FF</color>
     <color name="tv_text_primary">#FFFFFFFF</color>
     <color name="tv_text_secondary">#B3FFFFFF</color>
+    <color name="tv_text_muted">#809BB0</color>
 </resources>
