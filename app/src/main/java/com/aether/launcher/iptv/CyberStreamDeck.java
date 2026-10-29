@@ -12,6 +12,7 @@ import com.aether.launcher.audio.CyberSoundSynth;
 import com.aether.launcher.hud.HologramTheme;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class CyberStreamDeck {
 
@@ -116,7 +117,7 @@ public class CyberStreamDeck {
     private void tuneCurrentChannel() {
         if (channels.isEmpty()) return;
         StreamChannel ch = channels.get(currentChannelIdx);
-        playUrl(ch.getStreamUrl(), "CH " + String.format("%02d", currentChannelIdx + 1) + " // " + ch.getName());
+        playUrl(ch.getStreamUrl(), "CH " + String.format(Locale.US, "%02d", currentChannelIdx + 1) + " // " + ch.getName());
     }
 
     public void playUrl(String url, String title) {

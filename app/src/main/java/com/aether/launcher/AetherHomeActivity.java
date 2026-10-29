@@ -296,7 +296,7 @@ public class AetherHomeActivity extends Activity {
     private void tuneHeroChannel() {
         if (heroChannels.isEmpty()) return;
         StreamChannel ch = heroChannels.get(currentHeroChannelIdx);
-        heroChannelName.setText(String.format("CH %02d // %s", currentHeroChannelIdx + 1, ch.getName()));
+        heroChannelName.setText(String.format(Locale.US, "CH %02d // %s", currentHeroChannelIdx + 1, ch.getName()));
         heroStreamStatus.setText("TUNING // CONNECTING...");
         heroStreamStatus.setTextColor(0xFF00F0FF);
         heroVideoPlayer.setVideoURI(Uri.parse(ch.getStreamUrl()));
