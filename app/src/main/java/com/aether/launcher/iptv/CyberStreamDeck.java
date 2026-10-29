@@ -152,7 +152,9 @@ public class CyberStreamDeck {
         statusText.setTextColor(HologramTheme.get().getPrimary());
 
         try {
-            videoPlayer.stopPlayback();
+            if (videoPlayer != null && videoPlayer.isPlaying()) {
+                videoPlayer.stopPlayback();
+            }
             videoPlayer.setVideoURI(Uri.parse(url));
         } catch (Exception e) {
             statusText.setText("SIGNAL // ERROR: " + e.getMessage());

@@ -114,6 +114,7 @@ public class AetherHomeActivity extends Activity {
     private GestureDetector gestureDetector;
     private final Handler chronoHandler = new Handler(Looper.getMainLooper());
     private final SimpleDateFormat utcFormat = new SimpleDateFormat("HH:mm:ss", Locale.US);
+    private final SimpleDateFormat localTimeFmt = new SimpleDateFormat("h:mm a", Locale.US);
 
     // Tactile Focus Scaler and Audio Feedback for TV Remote
     private final View.OnFocusChangeListener buttonFocusScaler = (v, hasFocus) -> {
@@ -352,6 +353,18 @@ public class AetherHomeActivity extends Activity {
         }
     }
 
+    private void safelyStopVideo(VideoView video) {
+        if (video != null) {
+            try {
+                if (video.isPlaying()) {
+                    video.stopPlayback();
+                } else {
+                    video.suspend();
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
     private void toggleHeroStage() {
         switch (currentHeroMode) {
             case CINEMATIC_ART:
@@ -359,7 +372,7 @@ public class AetherHomeActivity extends Activity {
                 currentHeroMode = HeroStageMode.AMBIENT_CORE;
                 if (heroArtContainer != null) heroArtContainer.setVisibility(View.GONE);
                 if (heroVideoContainer != null) {
-                    heroVideoPlayer.stopPlayback();
+                    safelyStopVideo(heroVideoPlayer);
                     heroVideoContainer.setVisibility(View.GONE);
                 }
                 if (arcReactorView != null) {
@@ -385,7 +398,7 @@ public class AetherHomeActivity extends Activity {
             case LIVE_AV:
                 // Switch back to Cinematic Artwork
                 currentHeroMode = HeroStageMode.CINEMATIC_ART;
-                if (heroVideoPlayer != null) heroVideoPlayer.stopPlayback();
+                safelyStopVideo(heroVideoPlayer);
                 if (heroVideoContainer != null) heroVideoContainer.setVisibility(View.GONE);
                 if (arcReactorView != null) {
                     arcReactorView.pauseAnimation();
@@ -471,8 +484,7 @@ public class AetherHomeActivity extends Activity {
             @Override
             public void run() {
                 if (txtChronoStardate != null) {
-                    SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a", Locale.US);
-                    String localTime = timeFmt.format(new Date());
+                    String localTime = localTimeFmt.format(new Date());
                     txtChronoStardate.setText(String.format(Locale.US, "%s  ·  STARDATE %s", localTime, telemetry.getStardateString()));
                 }
                 chronoHandler.postDelayed(this, 1000);
@@ -948,7 +960,7 @@ public class AetherHomeActivity extends Activity {
                 arcReactorView.pauseAnimation();
             }
             if (heroVideoPlayer != null && currentHeroMode == HeroStageMode.LIVE_AV) {
-                heroVideoPlayer.stopPlayback();
+                safelyStopVideo(heroVideoPlayer);
             }
         }
     }
@@ -964,9 +976,7 @@ public class AetherHomeActivity extends Activity {
         super.onStop();
         widgetHostManager.stopListening();
         streamDeck.stop();
-        if (heroVideoPlayer != null) {
-            heroVideoPlayer.stopPlayback();
-        }
+        safelyStopVideo(heroVideoPlayer);
     }
 
     @Override
@@ -975,5 +985,6 @@ public class AetherHomeActivity extends Activity {
         chronoHandler.removeCallbacksAndMessages(null);
         telemetry.stop();
         gyroManager.stop();
+        safelyStopVideo(heroVideoPlayer);
     }
 }
