@@ -1,11 +1,11 @@
 {
   "dock_apps": [
-    "org.smarttube.stable",
     "com.amazon.firetv.youtube",
     "com.amazon.avod",
-    "com.brave.browser",
+    "tv.airtel.xstream.tvapp",
     "com.spotify.tv.android",
-    "tv.airtel.xstream.tvapp"
+    "app.netmirror.newtv",
+    "com.brave.browser"
   ],
   "background_color": "#04060C",
   "wallpaper": true,
@@ -30,7 +30,7 @@
   "advanced_effects": true,
   "focus_overshoot": false,
   "show_stats": true,
-  "greeting_name": "Aditya",
+  "greeting_name": "COMMANDER ADITYA",
   "show_greeting": true,
   "header_white": true,
   "icon_only_buttons": true,

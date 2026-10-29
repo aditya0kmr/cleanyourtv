@@ -430,6 +430,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        boolean soundOn = getSharedPreferences("aether_sound", MODE_PRIVATE).getBoolean("enabled", true);
+        com.gathin.tvhome.audio.CyberSoundSynth.get().setEnabled(soundOn);
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
         // config.xml, overlaid by config.json from a pushed theme (see Config and tools/theme.sh).
@@ -898,6 +900,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 glass.setAccent(theme.getPrimary());
                 com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
                 Toast.makeText(this, "HUD COLOR: " + theme.getThemeType().title, Toast.LENGTH_SHORT).show();
+            });
+            btnTheme.setOnLongClickListener(v -> {
+                boolean next = !com.gathin.tvhome.audio.CyberSoundSynth.get().isEnabled();
+                com.gathin.tvhome.audio.CyberSoundSynth.get().setEnabled(next);
+                getSharedPreferences("aether_sound", MODE_PRIVATE).edit().putBoolean("enabled", next).apply();
+                if (next) com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+                Toast.makeText(this, next ? "TACTILE AUDIO: ON" : "NIGHT MODE: AUDIO MUTED", Toast.LENGTH_SHORT).show();
+                return true;
             });
             btnTheme.setOnKeyListener(pillKeys);
         }
