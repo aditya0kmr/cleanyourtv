@@ -547,11 +547,23 @@ public class AetherHomeActivity extends Activity {
         if (!filtered.isEmpty()) {
             updateAppDossier(filtered.get(0));
             recyclerHorizontalShelf.post(() -> {
-                RecyclerView.ViewHolder vh = recyclerHorizontalShelf.findViewHolderForAdapterPosition(0);
-                if (vh != null) {
-                    vh.itemView.requestFocus();
+                View first = recyclerHorizontalShelf.getChildAt(0);
+                if (first != null) {
+                    first.requestFocus();
+                } else {
+                    RecyclerView.ViewHolder vh = recyclerHorizontalShelf.findViewHolderForAdapterPosition(0);
+                    if (vh != null) {
+                        vh.itemView.requestFocus();
+                    } else {
+                        recyclerHorizontalShelf.scrollToPosition(0);
+                    }
                 }
             });
+        } else {
+            dossierAppName.setText("NO APPLICATIONS FOUND");
+            dossierAppCategory.setText("CATEGORY: [" + activeCategory.label + "]");
+            dossierAppPackage.setText("0 APPS DETECTED IN THIS CATEGORY");
+            dossierAppIcon.setImageResource(R.drawable.ic_launcher);
         }
     }
 

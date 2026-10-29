@@ -95,6 +95,10 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             pinDot.setVisibility(app.isPinned() ? View.VISIBLE : View.GONE);
             pinDot.setBackgroundColor(HologramTheme.get().getPrimary());
 
+            // Prevent remote focus trapping
+            container.setNextFocusUpId(R.id.shelf_category_tabs);
+            container.setNextFocusDownId(R.id.btn_open_terminal);
+
             // TV Remote Focus Scaling & Audio
             container.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
