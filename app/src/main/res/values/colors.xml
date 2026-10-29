@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#080C14</color>
+    <color name="bg_panel">#0E1724</color>
+    <color name="bg_panel_trans">#E60E1724</color>
+    <color name="bg_card">#162234</color>
+    <color name="holo_cyan">#00F0FF</color>
+    <color name="holo_cyan_dim">#4000F0FF</color>
+    <color name="holo_cyan_dark">#005B66</color>
+    <color name="holo_amber">#FFB300</color>
+    <color name="holo_amber_dim">#40FFB300</color>
+    <color name="holo_emerald">#00FF66</color>
+    <color name="holo_emerald_dim">#4000FF66</color>
+    <color name="holo_crimson">#FF2A6D</color>
+    <color name="holo_crimson_dim">#40FF2A6D</color>
+    <color name="holo_violet">#B026FF</color>
+    <color name="holo_violet_dim">#40B026FF</color>
+    <color name="text_white">#F0F8FF</color>
+    <color name="text_dim">#7A8E9E</color>
+    <color name="text_tech">#00F0FF</color>
+    <color name="scanner_grid">#0C2538</color>
+</resources>

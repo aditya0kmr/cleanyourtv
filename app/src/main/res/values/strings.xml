@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AETHER HUD</string>
+    <string name="command_prompt">SYSTEM // AWAITING COMMAND &gt;</string>
+    <string name="search_hint">SEARCH APP OR COMMAND (e.g. calc, iptv, game)...</string>
+    <string name="stardate_prefix">STARDATE // </string>
+    <string name="terminal_title">CYBER TERMINAL // CLI</string>
+    <string name="iptv_title">HOLO STREAM MONITOR // AV DECK</string>
+    <string name="arcade_title">HOLO ARCADE // TACTICAL SIM</string>
+</resources>
