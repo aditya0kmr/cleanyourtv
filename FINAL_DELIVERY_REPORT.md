@@ -1,13 +1,13 @@
 # AETHER LAUNCHER — CINEMATIC REDESIGN & FINAL DELIVERY REPORT
 
-**Execution Timestamp:** 2026-10-29T20:17:19+05:30  
+**Execution Timestamp:** 2026-10-29T20:55:00+05:30  
 **Environment:** Linux (Android Termux) / Gradle 8.2 / OpenJDK 17.0.12  
 **Target Hardware:** Amazon Fire TV Stick Lite (`AFTSS` / `sheldon`, Android 9 API 28, Fire OS 7.6.8.1, 1920×1080 @ 60Hz)  
 **ADB Endpoint:** `10.116.23.179:5555` (Connected, authorized, `device` state)  
 **Package:** `com.aether.launcher`  
 **Main Activity:** `com.aether.launcher/.AetherHomeActivity`  
 **Active Git Branch:** `feature/nexus-tv-interface`  
-**Latest Commit:** [`205a521`](file:///data/data/com.termux/files/home/aether-launcher)  
+**Latest Verified Commit:** [`ef9ef30`](file:///data/data/com.termux/files/home/aether-launcher)  
 **Preserved Baseline:** `master` at `f7496fa`, Tag `v1.0-baseline` intact  
 
 ---
@@ -23,17 +23,21 @@ The AETHER Launcher has been transformed from a technical dashboard command-cent
 
 2. **Refined Application Information & 10-Foot Typography:**
    - Large, crisp, bold app title (`34sp`, `#FFFFFFFF`) visible from across the living room.
-   - Compact subtitle meta row: translucent category badge pill (`#1A00E5FF`) + "1080p Television Optimized" in muted elegant slate (`#88A0B2`).
+   - Dynamic action label: "▶ OPEN [APP NAME]" dynamically updates based on the currently selected shelf item.
+   - Compact subtitle meta row: translucent category badge pill (`#1A00E5FF`) + "★ PINNED FAVORITE · 1080p" or "1080p Television Optimized" in muted elegant slate (`#88A0B2`).
    - Clean, elevated frosted glass frame for high-res app icons ([`bg_glass_icon_badge.xml`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/drawable/bg_glass_icon_badge.xml)), eliminating harsh rectangular borders.
 
-3. **Unified Remote Control Action Bar:**
-   - Primary Launch CTA ([`btn_hero_launch`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/layout/activity_aether_home.xml#L195)) and Preview Mode Toggle ([`btn_toggle_hero`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/layout/activity_aether_home.xml#L205)) sit side-by-side under the title with intuitive horizontal D-pad navigation.
+3. **Continuous 5-Tier Bi-Directional Remote Navigation:**
+   - Seamless remote navigation hierarchy: Header Bar (`btn_theme_cycle`) ↕ Hero Action Buttons (`btn_hero_launch` / `btn_toggle_hero`) ↕ Category Tabs (`shelf_category_tabs`) ↕ Carousel Shelf (`recycler_horizontal_shelf`) ↕ System Dock (`btn_open_apps`, `btn_open_arcade`, `btn_open_iptv`, `btn_open_terminal`).
+   - Zero focus trapping: deterministic D-pad routing guarantees that remote arrows never get stuck or lost.
 
-4. **Atmospheric Celestial Space Background:**
+4. **Overlay Focus Memory & Safe Return:**
+   - Storing `lastFocusedViewBeforeOverlay` preserves exact remote focus position when opening and closing any overlay (App Matrix, Arcade, Live TV, or Terminal), eliminating jarring focus resets.
+   - TV remote Menu key (`KEYCODE_MENU`) on any app card instantly toggles pinned favorite status.
+
+5. **Atmospheric Celestial Space Background & Frosted Glass Shelf:**
    - Background replaced with [`bg_cinematic_space.xml`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/drawable/bg_cinematic_space.xml): deepest obsidian-navy foundation (`#060C18` to `#020408`) with a soft celestial cyan bloom in the upper-right hero area and subtle horizon scrim.
-
-5. **tvOS Frosted Dark Glass App Shelf:**
-   - Refined [`bg_cyber_card_selector.xml`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/drawable/bg_cyber_card_selector.xml) with luxury frosted dark glass idle state (`#22FFFFFF` to `#E6040710`) and glowing cyan specular rim on focus.
+   - Refined [`bg_cyber_card_selector.xml`](file:///data/data/com.termux/files/home/aether-launcher/app/src/main/res/drawable/bg_cyber_card_selector.xml) with luxury frosted dark glass idle state (`#22FFFFFF` to `#E6040710`) and glowing cyan specular rim on focus with 1.10x remote scale.
 
 ---
 
@@ -41,9 +45,8 @@ The AETHER Launcher has been transformed from a technical dashboard command-cent
 
 | Artifact Description | Location | Exact Size | SHA-256 Checksum |
 | :--- | :--- | :--- | :--- |
-| **Final Delivered Release APK** | [`aether-launcher-final.apk`](file:///data/data/com.termux/files/home/apks/aether-launcher-final.apk) | `1,833,967 B` | `9989087fa8f18878c456030ad4f1c54334895619aa34103e06b37a6709e9889b` |
-| **Release Build Output** | [`app-release.apk`](file:///data/data/com.termux/files/home/aether-launcher/app/build/outputs/apk/release/app-release.apk) | `1,833,967 B` | `9989087fa8f18878c456030ad4f1c54334895619aa34103e06b37a6709e9889b` |
-| **Debug Build Output** | [`app-debug.apk`](file:///data/data/com.termux/files/home/aether-launcher/app/build/outputs/apk/debug/app-debug.apk) | `2,385,480 B` | `c365888eb85b50eef7d4f5e930ff43480d118877477388fa2a0ae3cd16b9ace1` |
+| **Final Delivered Release APK** | [`aether-launcher-final.apk`](file:///data/data/com.termux/files/home/apks/aether-launcher-final.apk) | `1,836,279 B` | `c7476a92c87555429e86ee23ad9ddc73a7b97ac09db203c7ddc506f24ba038af` |
+| **Release Build Output** | [`app-release.apk`](file:///data/data/com.termux/files/home/aether-launcher/app/build/outputs/apk/release/app-release.apk) | `1,836,279 B` | `c7476a92c87555429e86ee23ad9ddc73a7b97ac09db203c7ddc506f24ba038af` |
 | **Original Baseline APK (Preserved)** | [`aether-launcher.apk`](file:///data/data/com.termux/files/home/apks/aether-launcher.apk) | `2,395,011 B` | `867f622f64d71f7daec916fa09a464c0ce54cc444f92793092dadb3e5df1d08c` |
 | **Source Backup Tarball (Preserved)** | [`aether-launcher-backup-...tar.gz`](file:///data/data/com.termux/files/home/aether-launcher-backup-20261029-154830.tar.gz) | `74,137 B` | `98fcd6923f8151e1d3ba328ffe5afdeb8908027f2780aeeef02e0db2a6a1e1c1` |
 
@@ -54,7 +57,7 @@ The AETHER Launcher has been transformed from a technical dashboard command-cent
 
 ## 3. Real-Device Live Verification Walkthrough (1920×1080 Framebuffer Captures)
 
-All 12 frames were captured from the physical Fire TV Stick Lite framebuffer with the cinematic release build installed:
+All 12 frames were captured live from the physical Amazon Fire TV Stick Lite framebuffer:
 
 ````carousel
 ![Frame 1: Cinematic Home Screen](file:///data/data/com.termux/files/home/.gemini/antigravity-cli/brain/0b3c1f92-ae20-47b5-af52-45461785e79f/01_cinematic_home_screen.png)
@@ -82,28 +85,19 @@ All 12 frames were captured from the physical Fire TV Stick Lite framebuffer wit
 ![Frame 12: Clean Return to Home Base](file:///data/data/com.termux/files/home/.gemini/antigravity-cli/brain/0b3c1f92-ae20-47b5-af52-45461785e79f/09_back_home.png)
 ````
 
-### Screenshot Checksums & Header Verification:
+### Screenshot Checksums & Verification:
 
 | Filename | File Size | Dimensions | SHA-256 Checksum | Visual Status |
 | :--- | :--- | :---: | :--- | :--- |
-| `01_cinematic_home_screen.png` | `393,919 B` | `1920 × 1080` | `69b40a52b0ad890a21cf3e6e8e8ae9859f518e3848b5606e93ebcc074e64f895` | Panoramic cosmic stage, clean typography, 0 harsh boxes |
-| `02_shelf_focused.png` | `234,606 B` | `1920 × 1080` | `cce32dbf808b537d995cbf65aeebae7c3ae139812dd9093bf656a84c6c06a74b` | Card 2 scaled 1.10x with frosted cyan rim |
-| `03_tabs_focused.png` | `228,235 B` | `1920 × 1080` | `e1f23931611b4b7e8c3325c792376fe78f56fa6443c683b5387d3a01ae74288c` | Category tab focused via DPAD UP; obsidian text on cyan |
-| `04_spotlight_cta_focused.png` | `230,915 B` | `1920 × 1080` | `30c9e28aee6ae4d805e2634e9e43e26462ecf7b49466fc4ba7a3720760f381fe` | "▶ OPEN APPLICATION" button focused |
-| `05_preview_toggle_focused.png` | `231,060 B` | `1920 × 1080` | `c66e76d580291f6d90bfb019800ff8e5d0382d5668b55d9d71fa99bcf82c81cf` | "⟐ AMBIENT CORE" toggle focused right beside CTA |
-| `05b_ambient_core_toggled.png` | `260,421 B` | `1920 × 1080` | `4012eebbf96ce0046b4e4a706da62aa800d3a5624773cbb7bcfbfd69930f3a09` | Kinetic Arc Reactor smoothly blended in ambient mode |
-| `06_dock_focused.png` | `391,287 B` | `1920 × 1080` | `ab0334f0f1e37bbe482b6be0702d76378a5369bb9c148cf49842a2ee79ae9fd4` | Bottom dock focused above glass divider |
-| `07_app_matrix_open.png` | `302,732 B` | `1920 × 1080` | `b1c66dd8b046b717f90c6ca975f73fbf91ff26a7ee7f6ea11d6118d09813a30c` | Amazon Venezia full apps grid active |
-| `08_arcade_overlay.png` | `350,808 B` | `1920 × 1080` | `f33f2becd51857858ddd05e65d308f90dbb1499610101364187b8aeffbd63e6b` | Retro Holo-Arcade minigame overlay rendered |
-| `08b_iptv_overlay.png` | `350,914 B` | `1920 × 1080` | `574c653ab0d574f668f6fa6e258036062b6615af4346b4735ac366f739461d44` | Live TV stream deck overlay rendered |
-| `08c_terminal_overlay.png` | `350,914 B` | `1920 × 1080` | `574c653ab0d574f668f6fa6e258036062b6615af4346b4735ac366f739461d44` | Cyber Terminal console overlay rendered |
-| `09_back_home.png` | `394,147 B` | `1920 × 1080` | `0daadffb0bf75f38a531bcfbb46fb59b1fb264f3d2fbc781c6e1aa80dd85c35f` | Clean return to home screen with full state restored |
-
----
-
-## 4. Stability, Timing & Logcat Verification
-
-- **Activity Cool Launch Time:** `790ms` (`WaitTime: 956ms`, `ThisTime: 885ms`).
-- **Warm Resume Time:** `70ms` (when returning from Amazon Venezia apps grid).
-- **Logcat Exception Check:** `adb logcat -d | grep -E "(FATAL|AndroidRuntime|ANR)"` returned **0 matches**.
-- **Process ID:** PID `30627` remained continuously alive across the entire regression test sequence.
+| `01_cinematic_home_screen.png` | `400,071 B` | `1920 × 1080` | `510d2a267b8b8953c22e310e5f2040915c92f9f6547e283da52cb61fe339165b` | Panoramic cosmic stage, clean typography, 0 harsh boxes |
+| `02_shelf_focused.png` | `239,638 B` | `1920 × 1080` | `8c7fd7257e36623bba4024131928c860032817df3cf209be4bcab0a47b0f9f0c` | Card focused scaled 1.10x with frosted cyan rim |
+| `03_tabs_focused.png` | `233,268 B` | `1920 × 1080` | `01af59f80368f2e416627beda845c9c8510880d23703d40ad36ca0cb78f2b18d` | Category tab focused via DPAD UP; obsidian text on cyan |
+| `04_spotlight_cta_focused.png` | `234,961 B` | `1920 × 1080` | `36f8f9997a24d275e0c2bebf8ea24e45dca57a1d75126e8718ca98e2e332b4f7` | Dynamic "▶ OPEN [APP]" button focused with tactile scale |
+| `05_preview_toggle_focused.png` | `235,273 B` | `1920 × 1080` | `7eb3f0c4d9bec117ec1882bd1e4fc4e62380f6e49a36e71d78557c3779697c6a` | "⟐ AMBIENT CORE" toggle focused right beside CTA |
+| `05b_ambient_core_toggled.png` | `265,004 B` | `1920 × 1080` | `5636aa7ca69308a3244251a2e3c9680ca3b3c11dba5e4ba25becf5b9ed3af028` | Kinetic Arc Reactor smoothly blended in ambient mode |
+| `06_dock_focused.png` | `396,464 B` | `1920 × 1080` | `7a3c7db4e2645273ef96d022b1134b0dfbde2341475423c78f24678b463255ba` | Bottom dock focused above glass divider |
+| `07_app_matrix_open.png` | `316,750 B` | `1920 × 1080` | `c21da0b02529d75de8c5f7b3d02a6c25c038ff7cd4c5a73b3b20140fb9a32e7d` | App Matrix 4-column grid overlay with decoupled 2D navigation |
+| `08_arcade_overlay.png` | `142,270 B` | `1920 × 1080` | `bde51703dc31c6db3280ecaa7abb5776cc31766b2b369b09322a5a8d67eacc4e` | Retro Holo-Arcade minigame overlay rendered |
+| `08b_iptv_overlay.png` | `91,814 B` | `1920 × 1080` | `5a04f94aca8f5b43845eec9e53e6e5eb6bc6f5e616211ce9a09f04001200a3e8` | Live TV stream deck overlay rendered with focusable controls |
+| `08c_terminal_overlay.png` | `182,579 B` | `1920 × 1080` | `0d31b1479e00b40ba38727b255bd274c0b5886497548da4f4718ba3f471cfc75` | Cyber Terminal console overlay rendered with focusable controls |
+| `09_back_home.png` | `396,461 B` | `1920 × 1080` | `87b52e719f447a3c89532f39f660b62ffca76b96a01a63e7dba22e77098f0f43` | Clean return to home screen with exact focus memory restored |
