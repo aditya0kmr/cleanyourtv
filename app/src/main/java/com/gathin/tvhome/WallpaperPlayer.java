@@ -165,6 +165,39 @@ final class WallpaperPlayer {
         decoder.shutdownNow();
     }
 
+    String advanceNext() {
+        if (closed || loading || files.isEmpty()) return displayed;
+        List<File> playable = playable();
+        File next = WallpaperRotation.next(playable, displayed);
+        if (next == null) next = WallpaperRotation.pick(playable, displayed, random);
+        if (next == null) return displayed;
+        File selected = next;
+        loading = true;
+        decoder.execute(() -> {
+            Bitmap bitmap = decode(selected);
+            root.post(() -> {
+                loading = false;
+                if (closed) {
+                    if (bitmap != null) bitmap.recycle();
+                    return;
+                }
+                if (bitmap != null) {
+                    show(bitmap);
+                    displayed = selected.getName();
+                    showCaption(true);
+                    preferences.edit().putString("image", displayed)
+                            .putLong("changed", System.currentTimeMillis()).apply();
+                }
+            });
+        });
+        return getDisplayedName();
+    }
+
+    String getDisplayedName() {
+        String captionName = names != null ? names.get(displayed) : null;
+        return captionName != null ? captionName : displayed;
+    }
+
     void update() {
         if (!active || closed || loading || files.isEmpty()) return;
         String previous = preferences.getString("image", "");

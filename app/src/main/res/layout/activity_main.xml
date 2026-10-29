@@ -129,12 +129,15 @@
             android:layout_height="wrap_content"
             android:text="STREAMING · 1080P"
             android:textColor="#00E5FF"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:letterSpacing="0.14"
             android:textAllCaps="true"
             android:fontFamily="@string/font_medium"
+            android:background="@drawable/pill_bg"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="3dp"
             android:layout_marginStart="4dp"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="8dp"
             android:visibility="gone" />
 
         <TextView
@@ -317,23 +320,26 @@
 
             </LinearLayout>
 
-            <!-- Shown only when show_stats is on. Outside leftBlock, so the top buttons stay level with the clock
-                 row; gone, it takes no space. -->
+            <!-- Interactive Cyber Telemetry Ticker -->
             <TextView
                 android:id="@+id/stats"
                 android:layout_width="wrap_content"
                 android:layout_below="@id/leftBlock"
                 android:layout_alignStart="@id/leftBlock"
-                android:gravity="left"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="5dp"
+                android:background="@drawable/pill_bg"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:textColor="#E600E5FF"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:fontFamily="@string/font_medium"
-                android:letterSpacing="0.04"
-                android:focusable="false"
+                android:letterSpacing="0.05"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusDown="@+id/grid"
                 android:visibility="gone" />
 
             <LinearLayout
@@ -413,6 +419,13 @@
                     style="@style/TopButton"
                     android:text="THEME"
                     android:drawableStart="@drawable/ic_theme"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
+                    android:id="@+id/btnWallpaper"
+                    style="@style/TopButton"
+                    android:text="WALLPAPER"
+                    android:drawableStart="@drawable/ic_picture"
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
@@ -520,6 +533,44 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="16dp"
                 android:background="#3300E5FF" />
+
+            <!-- Interactive Diagnostic Action Pills -->
+            <LinearLayout
+                android:id="@+id/terminalActionsRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/btnTrimMemory"
+                    style="@style/TopButton"
+                    android:layout_marginStart="0dp"
+                    android:text="TRIM RAM"
+                    android:textColor="#00E5FF"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btnTestAudio"
+                    style="@style/TopButton"
+                    android:text="TEST AUDIO"
+                    android:textColor="#00E5FF"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btnConsoleTheme"
+                    style="@style/TopButton"
+                    android:text="CYCLE THEME"
+                    android:textColor="#00E5FF"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btnConsoleWallpaper"
+                    style="@style/TopButton"
+                    android:text="NEXT WALLPAPER"
+                    android:textColor="#00E5FF"
+                    android:focusable="true" />
+            </LinearLayout>
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -720,6 +771,7 @@
                                 style="@style/TopButton"
                                 android:text="FULLSCREEN [OK]"
                                 android:focusable="true"
+                                android:nextFocusLeft="@+id/iptvChannelsRecycler"
                                 android:textColor="#00E5FF" />
                         </LinearLayout>
 
@@ -761,7 +813,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="[▲/▼] CHANNEL   •   [BACK] GUIDE"
+                android:text="[▲/▼] TUNE   •   [MENU] FAVORITE ★   •   [BACK] GUIDE"
                 android:textColor="#8000E5FF"
                 android:textSize="12sp"
                 android:letterSpacing="0.05" />

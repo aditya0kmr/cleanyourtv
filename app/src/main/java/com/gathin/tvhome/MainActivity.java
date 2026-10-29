@@ -3,6 +3,7 @@ package com.gathin.tvhome;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -278,6 +279,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private final Runnable hideFullscreenHudRunnable = () -> {
         if (iptvFullscreenHud != null) iptvFullscreenHud.setVisibility(View.GONE);
     };
+    private final Set<String> iptvFavorites = new HashSet<>();
+    private final StringBuilder numericChannelBuffer = new StringBuilder();
+    private final Handler numericChannelHandler = new Handler(Looper.getMainLooper());
+    private final Runnable numericChannelRunnable = this::tuneBufferedChannel;
     /** Module cards (res/values/config.xml, module_cards): discovered on resume, shown only after the owner's Show. */
     private boolean moduleCards;
     /** config settings_key_keycodes / settings_key_panel, so the Settings button works on Home without HomeKeyService. */
@@ -540,6 +545,37 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (btnCloseTerminal != null) {
             btnCloseTerminal.setOnClickListener(v -> hideOverlays());
         }
+        View btnTrimMemory = findViewById(R.id.btnTrimMemory);
+        if (btnTrimMemory != null) {
+            btnTrimMemory.setOnClickListener(v -> {
+                long before = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                System.gc();
+                long after = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                long reclaimedMb = Math.max(0, (before - after) / (1024 * 1024));
+                com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+                Toast.makeText(this, "[MEMORY TRIM] RECLAIMED " + reclaimedMb + " MB", Toast.LENGTH_SHORT).show();
+                updateTerminalSpecs();
+            });
+        }
+        View btnTestAudio = findViewById(R.id.btnTestAudio);
+        if (btnTestAudio != null) {
+            btnTestAudio.setOnClickListener(v -> com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp());
+        }
+        View btnConsoleTheme = findViewById(R.id.btnConsoleTheme);
+        if (btnConsoleTheme != null) {
+            btnConsoleTheme.setOnClickListener(v -> {
+                com.gathin.tvhome.hud.HologramTheme.get().cycleNext();
+                applyThemeColors();
+                updateTerminalSpecs();
+            });
+        }
+        View btnConsoleWallpaper = findViewById(R.id.btnConsoleWallpaper);
+        if (btnConsoleWallpaper != null) {
+            btnConsoleWallpaper.setOnClickListener(v -> {
+                cycleWallpaper();
+                updateTerminalSpecs();
+            });
+        }
 
         // Initialize IPTV Stream Deck
         iptvOverlay = findViewById(R.id.iptvOverlay);
@@ -612,6 +648,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnWifi = findViewById(R.id.btnWifi);
         shamsiDate = findViewById(R.id.shamsiDate);
         stats = findViewById(R.id.stats);
+        if (stats != null) {
+            if (cfg.showStats) stats.setVisibility(View.VISIBLE);
+            stats.setOnClickListener(v -> showTerminal());
+            stats.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(120).start();
+                    com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+                }
+            });
+        }
         raceCalendar = cfg.raceCalendar;
         racePanel = findViewById(R.id.racePanel);
         raceKicker = findViewById(R.id.raceKicker);
@@ -965,10 +1013,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (btnTheme != null) {
             btnTheme.setOnClickListener(v -> {
                 com.gathin.tvhome.hud.HologramTheme.get().cycleNext();
-                com.gathin.tvhome.hud.HologramTheme theme = com.gathin.tvhome.hud.HologramTheme.get();
-                glass.setAccent(theme.getPrimary());
+                applyThemeColors();
                 com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
-                Toast.makeText(this, "HUD COLOR: " + theme.getThemeType().title, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "HUD PROTOCOL: " + com.gathin.tvhome.hud.HologramTheme.get().getThemeType().title, Toast.LENGTH_SHORT).show();
             });
             btnTheme.setOnLongClickListener(v -> {
                 boolean next = !com.gathin.tvhome.audio.CyberSoundSynth.get().isEnabled();
@@ -980,12 +1027,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             });
             btnTheme.setOnKeyListener(pillKeys);
         }
+        View btnWallpaper = findViewById(R.id.btnWallpaper);
+        if (btnWallpaper != null) {
+            btnWallpaper.setOnClickListener(v -> cycleWallpaper());
+            btnWallpaper.setOnKeyListener(pillKeys);
+        }
         btnReorder.setOnKeyListener(pillKeys);
         btnLibraryTop.setOnKeyListener(pillKeys);
         for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
         if (advancedEffects) {
             List<View> pills = new ArrayList<>();
-            for (View p : new View[]{btnInputs, btnWifi, btnVpn, btnIptv, btnArcade, btnTerminal, btnTheme, btnReorder, btnLibraryTop, btnSettings}) {
+            for (View p : new View[]{btnInputs, btnWifi, btnVpn, btnIptv, btnArcade, btnTerminal, btnTheme, btnWallpaper, btnReorder, btnLibraryTop, btnSettings}) {
                 if (p != null) pills.add(p);
             }
             pills.addAll(topAppButtons);
@@ -1502,6 +1554,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                         || (terminalOverlay != null && terminalOverlay.getVisibility() == View.VISIBLE)) {
                     hideOverlays();
                     return true;
+                }
+            }
+            if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE) {
+                if (code >= KeyEvent.KEYCODE_0 && code <= KeyEvent.KEYCODE_9) {
+                    handleNumericChannelKey(code - KeyEvent.KEYCODE_0);
+                    return true;
+                }
+                if (code == KeyEvent.KEYCODE_MENU || code == KeyEvent.KEYCODE_BUTTON_Y) {
+                    if (iptvAdapter != null) {
+                        int pos = iptvAdapter.getSelectedPosition();
+                        if (pos >= 0) {
+                            iptvAdapter.toggleFavorite(pos);
+                            return true;
+                        }
+                    }
                 }
             }
             if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE && iptvFullscreenMode) {
@@ -2213,6 +2280,23 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (iptvChannelsRecycler == null) return;
 
         iptvAdapter = new com.gathin.tvhome.iptv.ChannelAdapter((channel, position) -> playChannel(channel));
+        SharedPreferences iptvPrefs = getSharedPreferences("aether_iptv", MODE_PRIVATE);
+        Set<String> savedFavs = iptvPrefs.getStringSet("favorites", null);
+        if (savedFavs != null) iptvFavorites.addAll(savedFavs);
+        iptvAdapter.setFavorites(iptvFavorites);
+        iptvAdapter.setOnFavoriteToggleListener((channel, pos, isFav) -> {
+            String key = channel.getUrl().isEmpty() ? channel.getId() : channel.getUrl();
+            if (isFav) {
+                iptvFavorites.add(key);
+                Toast.makeText(this, "★ ADDED TO FAVORITES: " + channel.getName(), Toast.LENGTH_SHORT).show();
+            } else {
+                iptvFavorites.remove(key);
+                Toast.makeText(this, "REMOVED FROM FAVORITES", Toast.LENGTH_SHORT).show();
+            }
+            iptvPrefs.edit().putStringSet("favorites", new HashSet<>(iptvFavorites)).apply();
+            updateFavoritesCategory();
+        });
+
         iptvChannelsRecycler.setLayoutManager(new LinearLayoutManager(this));
         iptvChannelsRecycler.setAdapter(iptvAdapter);
         iptvChannelsRecycler.setItemAnimator(null);
@@ -2253,22 +2337,51 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 if (iptvChannelCount != null) {
                     iptvChannelCount.setText(channels.size() + " CHANNELS ONLINE");
                 }
-                buildIptvCategoryTabs();
+                updateFavoritesCategory();
                 selectIptvCategory("ALL");
             });
         }).start();
+    }
+
+    private void updateFavoritesCategory() {
+        List<com.gathin.tvhome.iptv.Channel> favs = new ArrayList<>();
+        for (com.gathin.tvhome.iptv.Channel c : iptvAllChannels) {
+            String key = c.getUrl().isEmpty() ? c.getId() : c.getUrl();
+            if (iptvFavorites.contains(key)) {
+                favs.add(c);
+            }
+        }
+        if (!favs.isEmpty()) {
+            iptvChannelsByCategory.put("★ FAVORITES", favs);
+        } else {
+            iptvChannelsByCategory.remove("★ FAVORITES");
+        }
+        buildIptvCategoryTabs();
     }
 
     private void buildIptvCategoryTabs() {
         if (iptvCategoryTabs == null) return;
         iptvCategoryTabs.removeAllViews();
 
+        List<String> ordered = new ArrayList<>();
+        if (iptvChannelsByCategory.containsKey("★ FAVORITES")) {
+            ordered.add("★ FAVORITES");
+        }
+        if (iptvChannelsByCategory.containsKey("ALL")) {
+            ordered.add("ALL");
+        }
         for (String cat : iptvChannelsByCategory.keySet()) {
+            if (!cat.equals("ALL") && !cat.equals("★ FAVORITES")) {
+                ordered.add(cat);
+            }
+        }
+
+        for (String cat : ordered) {
             List<com.gathin.tvhome.iptv.Channel> list = iptvChannelsByCategory.get(cat);
             int count = list != null ? list.size() : 0;
             TextView tab = new TextView(this);
             tab.setText(cat + " (" + count + ")");
-            tab.setTextColor(0xFFFFFFFF);
+            tab.setTextColor(cat.startsWith("★") ? 0xFFFFD700 : 0xFFFFFFFF);
             tab.setTextSize(12);
             tab.setBackgroundResource(R.drawable.pill_bg);
             tab.setPadding((int) (14 * density), (int) (6 * density), (int) (14 * density), (int) (6 * density));
@@ -2290,6 +2403,55 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             });
             iptvCategoryTabs.addView(tab);
         }
+    }
+
+    private void handleNumericChannelKey(int digit) {
+        numericChannelBuffer.append(digit);
+        String channelNumStr = numericChannelBuffer.toString();
+        Toast.makeText(this, "TUNING CHANNEL #" + channelNumStr + "...", Toast.LENGTH_SHORT).show();
+        numericChannelHandler.removeCallbacks(numericChannelRunnable);
+        numericChannelHandler.postDelayed(numericChannelRunnable, 800);
+    }
+
+    private void tuneBufferedChannel() {
+        if (numericChannelBuffer.length() == 0) return;
+        try {
+            int chNum = Integer.parseInt(numericChannelBuffer.toString());
+            numericChannelBuffer.setLength(0);
+            List<com.gathin.tvhome.iptv.Channel> list = iptvChannelsByCategory.get(iptvCurrentCategory);
+            if (list == null || list.isEmpty()) list = iptvAllChannels;
+            if (chNum >= 1 && chNum <= list.size()) {
+                int targetIndex = chNum - 1;
+                if (iptvAdapter != null) {
+                    iptvAdapter.setSelectedPosition(targetIndex);
+                    if (iptvChannelsRecycler != null) {
+                        iptvChannelsRecycler.scrollToPosition(targetIndex);
+                    }
+                }
+                playChannel(list.get(targetIndex));
+                showFullscreenHudBriefly();
+            } else {
+                Toast.makeText(this, "CHANNEL OUT OF RANGE (1-" + list.size() + ")", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception ignored) {
+            numericChannelBuffer.setLength(0);
+        }
+    }
+
+    private void cycleWallpaper() {
+        if (wallpaperPlayer != null) {
+            String name = wallpaperPlayer.advanceNext();
+            com.gathin.tvhome.audio.CyberSoundSynth.get().playChirp();
+            Toast.makeText(this, "WALLPAPER: " + name, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void applyThemeColors() {
+        com.gathin.tvhome.hud.HologramTheme theme = com.gathin.tvhome.hud.HologramTheme.get();
+        int primary = theme.getPrimary();
+        if (glass != null) glass.setAccent(primary);
+        if (heroCategoryText != null) heroCategoryText.setTextColor(primary);
+        if (stats != null) stats.setTextColor(primary);
     }
 
     private void selectIptvCategory(String category) {
@@ -2346,20 +2508,44 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         sb.append("CPU: MediaTek MT8695 Quad-Core ARMv7 @ 1.7 GHz\n");
         sb.append("GPU: PowerVR Rogue GE8300 (OpenGL ES 3.2)\n");
         sb.append("OS: Fire OS 7.7.1.7 (Android 9 API 28)\n");
-        sb.append("RESOLUTION: 1920x1080 @ 60Hz (320 dpi xhdpi)\n\n");
+        sb.append("DISPLAY: 1920x1080 @ 60Hz (xhdpi 320 dpi)\n");
+        sb.append("HUD THEME: ").append(com.gathin.tvhome.hud.HologramTheme.get().getThemeType().title).append("\n");
+        sb.append("TACTILE AUDIO: ").append(com.gathin.tvhome.audio.CyberSoundSynth.get().isEnabled() ? "ONLINE" : "MUTED (NIGHT MODE)").append("\n\n");
+
         sb.append("=== MEMORY & STORAGE ===\n");
+        try {
+            ActivityManager actManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (actManager != null) {
+                ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+                actManager.getMemoryInfo(memInfo);
+                long availMb = memInfo.availMem / (1024 * 1024);
+                long totalMb = memInfo.totalMem / (1024 * 1024);
+                long usedMb = totalMb - availMb;
+                int percent = (int) (((double) usedMb / totalMb) * 100);
+                sb.append(String.format(java.util.Locale.US, "SYSTEM RAM: %d MB used / %d MB total (%d MB free, %d%% load)\n", usedMb, totalMb, availMb, percent));
+            }
+        } catch (Exception ignored) {}
+
         Runtime rt = Runtime.getRuntime();
         long maxMem = rt.maxMemory() / (1024 * 1024);
         long totalMem = rt.totalMemory() / (1024 * 1024);
         long freeMem = rt.freeMemory() / (1024 * 1024);
         long usedMem = totalMem - freeMem;
-        sb.append(String.format(java.util.Locale.US, "JAVA HEAP: %d MB used / %d MB total (%d MB max limit)\n", usedMem, totalMem, maxMem));
-        sb.append("ACCESSIBILITY HOME KEY INTERCEPTION: ACTIVE\n\n");
+        sb.append(String.format(java.util.Locale.US, "JAVA HEAP: %d MB used / %d MB total (limit: %d MB)\n", usedMem, totalMem, maxMem));
+
+        long freeStorageGb = Environment.getDataDirectory().getFreeSpace() / (1024 * 1024 * 1024);
+        sb.append(String.format(java.util.Locale.US, "INTERNAL STORAGE: %d GB free\n", freeStorageGb));
+
+        String ip = getWifiIpAddress();
+        sb.append("NETWORK IP: ").append(ip.isEmpty() ? "DISCONNECTED" : ip).append("\n");
+        sb.append("FAVORITE CHANNELS: ").append(iptvFavorites.size()).append(" bookmarked\n\n");
+
         sb.append("=== SYSTEM LOG STREAM ===\n");
         sb.append("[OK] System initialized in 10-foot television mode.\n");
-        sb.append("[OK] Zero-allocation audio synth active.\n");
+        sb.append("[OK] Zero-allocation FM audio synth active.\n");
         sb.append("[OK] Frosted glass highlight engine synchronized.\n");
-        sb.append("[STATUS] All subsystems operational. Ready for user commands.\n");
+        sb.append("[OK] Quantum IPTV Stream Deck loaded and ready.\n");
+        sb.append("[STATUS] Subsystems 100% operational. Awaiting remote commands.\n");
         terminalLogText.setText(sb.toString());
     }
 
@@ -2669,27 +2855,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private String readStatsLine() {
-        int cpu = cpuPercent();
-        if (cpu < 0) {
-            try {
-                Thread.sleep(200);             // second sample, so the first line already has a CPU figure
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return "";
-            }
-            cpu = cpuPercent();
-        }
-        // Android 8 and later hide /proc/stat from apps on many TVs: then the line leaves CPU out rather than
-        // showing a dash that never fills in.
         StringBuilder line = new StringBuilder();
-        if (cpu >= 0) line.append(getString(R.string.stats_cpu, cpu));
-        long[] mem = memUsedOfTotalMb();
-        if (mem != null) appendStat(line, getString(R.string.stats_memory, mem[0], mem[1]));
-        String free = formatGb(getResources(), Environment.getDataDirectory().getFreeSpace());
-        if (!free.isEmpty()) appendStat(line, getString(R.string.stats_storage, free));
-        String ip = getWifiIpAddress();
-        if (!ip.isEmpty()) appendStat(line, "📶 " + ip);
-        return StatsText.forLocale(line.toString(), getResources().getConfiguration().getLocales().get(0));
+        line.append("SYS_CORE // ");
+        try {
+            ActivityManager actManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (actManager != null) {
+                ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+                actManager.getMemoryInfo(memInfo);
+                long availMb = memInfo.availMem / (1024 * 1024);
+                long totalMb = memInfo.totalMem / (1024 * 1024);
+                long usedMb = totalMb - availMb;
+                int percent = totalMb > 0 ? (int) (((double) usedMb / totalMb) * 100) : 50;
+                line.append(String.format(Locale.US, "RAM: %dMB FREE (%d%%) · ", availMb, 100 - percent));
+            }
+            long freeStorageGb = Environment.getDataDirectory().getFreeSpace() / (1024 * 1024 * 1024);
+            line.append(String.format(Locale.US, "STORAGE: %dGB FREE · ", freeStorageGb));
+
+            String ip = getWifiIpAddress();
+            if (!ip.isEmpty()) {
+                line.append("📶 ").append(ip);
+            }
+        } catch (Exception e) {
+            line.append("SYSTEM ACTIVE");
+        }
+        return line.toString();
     }
 
     private String getWifiIpAddress() {
