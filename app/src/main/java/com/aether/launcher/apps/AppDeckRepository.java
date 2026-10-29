@@ -72,9 +72,18 @@ public class AppDeckRepository {
             String label = ri.loadLabel(pm).toString();
             String actName = ri.activityInfo.name;
             Drawable icon = ri.loadIcon(pm);
+            Drawable banner = null;
+            try {
+                if (ri.activityInfo != null) {
+                    banner = ri.activityInfo.loadBanner(pm);
+                    if (banner == null && ri.activityInfo.applicationInfo != null) {
+                        banner = ri.activityInfo.applicationInfo.loadBanner(pm);
+                    }
+                }
+            } catch (Throwable ignored) {}
 
             AppModel.Category cat = categorizeApp(pkg, label, ri.activityInfo.applicationInfo);
-            AppModel app = new AppModel(label, pkg, actName, icon, cat);
+            AppModel app = new AppModel(label, pkg, actName, icon, banner, cat);
             if (pinnedPackages.contains(pkg)) {
                 app.setPinned(true);
             }

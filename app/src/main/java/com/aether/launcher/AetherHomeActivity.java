@@ -71,25 +71,22 @@ public class AetherHomeActivity extends Activity {
     private FrameLayout containerHeroStage;
     private FrameLayout heroVideoContainer;
     private VideoView heroVideoPlayer;
-    private TextView txtHeroMode;
     private TextView btnToggleHero;
     private TextView heroChannelName;
     private TextView heroStreamStatus;
-    private TextView btnHeroPrevCh;
-    private TextView btnHeroNextCh;
     private boolean isHeroVideoActive = false;
     private final List<StreamChannel> heroChannels = new ArrayList<>();
     private int currentHeroChannelIdx = 0;
 
-    // Right Stage: Dynamic Dossier & Hardware Radar
+    // Featured Spotlight Stage
     private ImageView dossierAppIcon;
     private TextView dossierAppName;
     private TextView dossierAppCategory;
     private TextView dossierAppPackage;
-    private TextView radarCpuGauge;
-    private TextView radarRamGauge;
-    private TextView radarPowerGauge;
-    private TextView radarNetGauge;
+    private ImageView heroAppBanner;
+    private View heroAppIconFrame;
+    private View btnHeroLaunch;
+    private AppModel currentlyFocusedApp;
 
     // Lower Shelf: Category Tabs & Horizontal Carousel
     private LinearLayout shelfCategoryTabs;
@@ -156,27 +153,23 @@ public class AetherHomeActivity extends Activity {
         txtTelemetryTop = findViewById(R.id.txt_telemetry_top);
         btnThemeCycle = findViewById(R.id.btn_theme_cycle);
 
-        // Left Stage: Hero Core & Video
+        // Preview Stage: Hero Core & Video Monitor
         containerHeroStage = findViewById(R.id.container_hero_stage);
         arcReactorView = findViewById(R.id.arc_reactor_view);
         heroVideoContainer = findViewById(R.id.hero_video_container);
         heroVideoPlayer = findViewById(R.id.hero_video_player);
-        txtHeroMode = findViewById(R.id.txt_hero_mode);
         btnToggleHero = findViewById(R.id.btn_toggle_hero);
         heroChannelName = findViewById(R.id.hero_channel_name);
         heroStreamStatus = findViewById(R.id.hero_stream_status);
-        btnHeroPrevCh = findViewById(R.id.btn_hero_prev_ch);
-        btnHeroNextCh = findViewById(R.id.btn_hero_next_ch);
 
-        // Right Stage: Active Dossier & Radar
+        // Featured Spotlight Stage
         dossierAppIcon = findViewById(R.id.dossier_app_icon);
         dossierAppName = findViewById(R.id.dossier_app_name);
         dossierAppCategory = findViewById(R.id.dossier_app_category);
         dossierAppPackage = findViewById(R.id.dossier_app_package);
-        radarCpuGauge = findViewById(R.id.radar_cpu_gauge);
-        radarRamGauge = findViewById(R.id.radar_ram_gauge);
-        radarPowerGauge = findViewById(R.id.radar_power_gauge);
-        radarNetGauge = findViewById(R.id.radar_net_gauge);
+        heroAppBanner = findViewById(R.id.hero_app_banner);
+        heroAppIconFrame = findViewById(R.id.hero_app_icon_frame);
+        btnHeroLaunch = findViewById(R.id.btn_hero_launch);
 
         // Lower Shelf
         shelfCategoryTabs = findViewById(R.id.shelf_category_tabs);
@@ -201,17 +194,6 @@ public class AetherHomeActivity extends Activity {
             toggleHeroStage();
         });
 
-        // Hero Video Channel Controls
-        btnHeroPrevCh.setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            prevHeroChannel();
-        });
-
-        btnHeroNextCh.setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            nextHeroChannel();
-        });
-
         heroVideoPlayer.setOnPreparedListener(mp -> {
             heroStreamStatus.setText("SIGNAL // 1080p ONLINE");
             heroStreamStatus.setTextColor(0xFF00FF66);
@@ -224,31 +206,30 @@ public class AetherHomeActivity extends Activity {
             return true;
         });
 
-        // Bottom Orbital Buttons
-        findViewById(R.id.btn_open_terminal).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            openTerminal();
-        });
+        // Bottom Dock Buttons
+        View btnApps = findViewById(R.id.btn_open_apps);
+        if (btnApps != null) {
+            btnApps.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                openAppMatrix();
+            });
+        }
 
-        findViewById(R.id.btn_open_apps).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            openAppMatrix();
-        });
+        View btnIptv = findViewById(R.id.btn_open_iptv);
+        if (btnIptv != null) {
+            btnIptv.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                openStreamDeck();
+            });
+        }
 
-        findViewById(R.id.btn_open_iptv).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            openStreamDeck();
-        });
-
-        findViewById(R.id.btn_open_arcade).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            openArcade("vector");
-        });
-
-        findViewById(R.id.btn_add_widget).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            widgetHostManager.pickWidget();
-        });
+        View btnArcade = findViewById(R.id.btn_open_arcade);
+        if (btnArcade != null) {
+            btnArcade.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                openArcade("vector");
+            });
+        }
 
         findViewById(R.id.btn_close_apps).setOnClickListener(v -> {
             CyberSoundSynth.get().playChirp();
@@ -266,7 +247,6 @@ public class AetherHomeActivity extends Activity {
     private void updateThemeAccents() {
         int primary = theme.getPrimary();
         txtTacticalTitle.setTextColor(primary);
-        txtHeroMode.setTextColor(primary);
         if (dossierAppCategory != null) {
             dossierAppCategory.setTextColor(primary);
         }
@@ -279,8 +259,7 @@ public class AetherHomeActivity extends Activity {
             arcReactorView.pauseAnimation();
             arcReactorView.setVisibility(View.GONE);
             heroVideoContainer.setVisibility(View.VISIBLE);
-            txtHeroMode.setText("// HERO STAGE: LIVE AV MONITOR //");
-            btnToggleHero.setText("[ SWITCH TO CORE ]");
+            btnToggleHero.setText("❖ AMBIENT CORE");
             tuneHeroChannel();
         } else {
             // Switch to Kinetic Core: Stop video decoder playback to preserve RAM
@@ -289,8 +268,7 @@ public class AetherHomeActivity extends Activity {
             heroVideoContainer.setVisibility(View.GONE);
             arcReactorView.setVisibility(View.VISIBLE);
             arcReactorView.resumeAnimation();
-            txtHeroMode.setText("// HERO STAGE: TACTICAL CORE //");
-            btnToggleHero.setText("[ SWITCH TO AV MONITOR ]");
+            btnToggleHero.setText("▶ LIVE AV");
         }
     }
 
@@ -352,43 +330,26 @@ public class AetherHomeActivity extends Activity {
 
     private void refreshTelemetryDisplay() {
         // Top Status Bar: clean status pills without slashes
-        if (telemetry.isAcPowered()) {
-            txtTelemetryTop.setText(String.format(Locale.US, "WI-FI %s · %dM · RAM %d%% · AC",
-                    telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps(), telemetry.getRamUsagePercent()));
-        } else {
-            txtTelemetryTop.setText(String.format(Locale.US, "WI-FI %s · %dM · RAM %d%% · BAT %.1fV",
-                    telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps(), telemetry.getRamUsagePercent(), telemetry.getBatteryVoltageV()));
+        if (txtTelemetryTop != null) {
+            if (telemetry.isAcPowered()) {
+                txtTelemetryTop.setText(String.format(Locale.US, "WI-FI %s · %dM · RAM %d%% · AC",
+                        telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps(), telemetry.getRamUsagePercent()));
+            } else {
+                txtTelemetryTop.setText(String.format(Locale.US, "WI-FI %s · %dM · RAM %d%% · BAT %.1fV",
+                        telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps(), telemetry.getRamUsagePercent(), telemetry.getBatteryVoltageV()));
+            }
         }
-
-        // Right Stage Hardware Radar: clean metrics without distracting ASCII blocks
-        int ramPercent = telemetry.getRamUsagePercent();
-        long totalMb = telemetry.getTotalRamBytes() / (1024 * 1024);
-        long availMb = telemetry.getAvailRamBytes() / (1024 * 1024);
-        long usedMb = totalMb - availMb;
-
-        radarRamGauge.setText(String.format(Locale.US, "MEMORY: %d MB / %d MB (%d%%) · %d MB FREE",
-                usedMb, totalMb, ramPercent, availMb));
-
-        int cpuPercent = Math.min(95, Math.max(15, (int) (ramPercent * 0.75f + (isHeroVideoActive ? 22 : 8))));
-        radarCpuGauge.setText(String.format(Locale.US, "CPU LOAD: %d%% · QUAD-CORE 64-BIT", cpuPercent));
-
-        if (telemetry.isAcPowered()) {
-            radarPowerGauge.setText(String.format(Locale.US, "POWER: AC CONNECTED · %.1f°C COOL", telemetry.getBatteryTempC()));
-        } else {
-            radarPowerGauge.setText(String.format(Locale.US, "POWER: BATTERY %.1fV · %.1f°C",
-                    telemetry.getBatteryVoltageV(), telemetry.getBatteryTempC()));
-        }
-
-        radarNetGauge.setText(String.format(Locale.US, "WI-FI: %s · %d Mbps ONLINE",
-                telemetry.getWifiSsid(), telemetry.getWifiSpeedMbps()));
     }
 
     private void startChronoLoop() {
         chronoHandler.post(new Runnable() {
             @Override
             public void run() {
-                String timeUtc = utcFormat.format(new Date());
-                txtChronoStardate.setText(String.format(Locale.US, "%s UTC  ·  %s", timeUtc, telemetry.getStardateString()));
+                if (txtChronoStardate != null) {
+                    SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a", Locale.US);
+                    String localTime = timeFmt.format(new Date());
+                    txtChronoStardate.setText(String.format(Locale.US, "%s  ·  STARDATE %s", localTime, telemetry.getStardateString()));
+                }
                 chronoHandler.postDelayed(this, 1000);
             }
         });
@@ -439,6 +400,8 @@ public class AetherHomeActivity extends Activity {
             tab.setBackgroundResource(R.drawable.bg_cyber_tab_selector);
             tab.setFocusable(true);
             tab.setClickable(true);
+            tab.setNextFocusDownId(R.id.recycler_horizontal_shelf);
+            tab.setNextFocusUpId(R.id.btn_hero_launch);
 
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -474,12 +437,46 @@ public class AetherHomeActivity extends Activity {
 
     private void updateAppDossier(AppModel app) {
         if (app == null) return;
-        dossierAppName.setText(app.getAppName());
-        dossierAppCategory.setText("APPLICATION  ·  " + app.getCategory().label.toUpperCase(Locale.US));
-        dossierAppCategory.setTextColor(theme.getPrimary());
-        dossierAppPackage.setText(app.getPackageName() + "  ·  1080p Compatible");
-        if (app.getIcon() != null) {
+        currentlyFocusedApp = app;
+
+        if (dossierAppName != null) {
+            dossierAppName.setText(app.getAppName());
+        }
+        if (dossierAppCategory != null) {
+            dossierAppCategory.setText(app.getCategory().label.toUpperCase(Locale.US));
+            dossierAppCategory.setTextColor(theme.getPrimary());
+        }
+        if (dossierAppPackage != null) {
+            dossierAppPackage.setText(app.isPinned() ? "★ PINNED FAVORITE  ·  1080p" : "1080p Television Optimized");
+        }
+
+        // Show official 16:9 Leanback TV banner if available; fallback to high-res icon frame
+        if (heroAppBanner != null && heroAppIconFrame != null) {
+            if (app.getBanner() != null) {
+                heroAppBanner.setImageDrawable(app.getBanner());
+                heroAppBanner.setVisibility(View.VISIBLE);
+                heroAppIconFrame.setVisibility(View.GONE);
+            } else {
+                heroAppBanner.setVisibility(View.GONE);
+                heroAppIconFrame.setVisibility(View.VISIBLE);
+                if (dossierAppIcon != null && app.getIcon() != null) {
+                    dossierAppIcon.setImageDrawable(app.getIcon());
+                }
+            }
+        } else if (dossierAppIcon != null && app.getIcon() != null) {
             dossierAppIcon.setImageDrawable(app.getIcon());
+        }
+
+        if (btnHeroLaunch != null) {
+            btnHeroLaunch.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                try {
+                    Intent intent = getPackageManager().getLaunchIntentForPackage(app.getPackageName());
+                    if (intent != null) {
+                        startActivity(intent);
+                    }
+                } catch (Exception ignored) {}
+            });
         }
     }
 
@@ -546,10 +543,28 @@ public class AetherHomeActivity extends Activity {
                 }
             });
         } else {
-            dossierAppName.setText("NO APPLICATIONS FOUND");
-            dossierAppCategory.setText("CATEGORY: [" + activeCategory.label + "]");
-            dossierAppPackage.setText("0 APPS DETECTED IN THIS CATEGORY");
-            dossierAppIcon.setImageResource(R.drawable.ic_launcher);
+            currentlyFocusedApp = null;
+            if (dossierAppName != null) {
+                dossierAppName.setText("NO APPLICATIONS FOUND");
+            }
+            if (dossierAppCategory != null) {
+                dossierAppCategory.setText("EMPTY  ·  " + activeCategory.label.toUpperCase(Locale.US));
+            }
+            if (dossierAppPackage != null) {
+                dossierAppPackage.setText("No apps registered in this category");
+            }
+            if (heroAppBanner != null) {
+                heroAppBanner.setVisibility(View.GONE);
+            }
+            if (heroAppIconFrame != null) {
+                heroAppIconFrame.setVisibility(View.VISIBLE);
+            }
+            if (dossierAppIcon != null) {
+                dossierAppIcon.setImageResource(R.drawable.ic_launcher);
+            }
+            if (btnHeroLaunch != null) {
+                btnHeroLaunch.setOnClickListener(null);
+            }
         }
     }
 

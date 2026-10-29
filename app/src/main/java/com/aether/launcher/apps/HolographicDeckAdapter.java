@@ -98,7 +98,7 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
 
             // Prevent remote focus trapping
             container.setNextFocusUpId(R.id.shelf_category_tabs);
-            container.setNextFocusDownId(R.id.btn_open_terminal);
+            container.setNextFocusDownId(R.id.btn_open_apps);
 
             // TV Remote Focus Scaling (CleanYourTV 1.10x Decelerate Interpolator) & Audio
             container.setOnFocusChangeListener((v, hasFocus) -> {
