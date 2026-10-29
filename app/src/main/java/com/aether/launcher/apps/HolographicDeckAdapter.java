@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -99,17 +100,19 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             container.setNextFocusUpId(R.id.shelf_category_tabs);
             container.setNextFocusDownId(R.id.btn_open_terminal);
 
-            // TV Remote Focus Scaling & Audio
+            // TV Remote Focus Scaling (CleanYourTV 1.10x Decelerate Interpolator) & Audio
             container.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
-                    v.animate().scaleX(1.12f).scaleY(1.12f).translationZ(8f).setDuration(120).start();
+                    v.animate().scaleX(1.10f).scaleY(1.10f).translationZ(6f).setDuration(130)
+                            .setInterpolator(new DecelerateInterpolator(1.5f)).start();
                     v.setSelected(true);
                     CyberSoundSynth.get().playDataClick();
                     if (focusChangeListener != null) {
                         focusChangeListener.onAppFocused(app);
                     }
                 } else {
-                    v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(120).start();
+                    v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(130)
+                            .setInterpolator(new DecelerateInterpolator(1.5f)).start();
                     v.setSelected(false);
                 }
             });
@@ -117,8 +120,8 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             container.setOnClickListener(v -> {
                 CyberSoundSynth.get().playWarp();
                 // Subtle press animation
-                v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80).withEndAction(() -> {
-                    v.animate().scaleX(1.12f).scaleY(1.12f).setDuration(80).start();
+                v.animate().scaleX(0.96f).scaleY(0.96f).setDuration(70).withEndAction(() -> {
+                    v.animate().scaleX(1.10f).scaleY(1.10f).setDuration(70).start();
                     launchApp(app);
                 }).start();
             });

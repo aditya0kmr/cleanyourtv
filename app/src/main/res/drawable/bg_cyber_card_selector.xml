@@ -1,35 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Focused state for 10-foot remote navigation -->
+    <!-- Focused on TV Remote: refined frosted glass sheen + electric cyan specular rim -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="#4500F0FF" />
-            <stroke android:width="2.5dp" android:color="#00F0FF" />
-            <corners android:radius="10dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#3800E5FF"
+                android:endColor="#1400B0FF" />
+            <stroke
+                android:width="2dp"
+                android:color="#CC00E5FF" />
+            <corners android:radius="16dp" />
         </shape>
     </item>
     <!-- Pressed state -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#7500F0FF" />
-            <stroke android:width="2.5dp" android:color="#FFFFFF" />
-            <corners android:radius="10dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#6500E5FF"
+                android:endColor="#3000B0FF" />
+            <stroke
+                android:width="2dp"
+                android:color="#FFFFFFFF" />
+            <corners android:radius="16dp" />
         </shape>
     </item>
-    <!-- Selected state (e.g. active tab/filter) -->
+    <!-- Selected state (active category or pinned item) -->
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="#3000F0FF" />
-            <stroke android:width="2dp" android:color="#00F0FF" />
-            <corners android:radius="10dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#2400E5FF"
+                android:endColor="#0C00B0FF" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#8000E5FF" />
+            <corners android:radius="16dp" />
         </shape>
     </item>
-    <!-- Default idle state -->
+    <!-- Default idle state: deep subtle gradient with soft rim -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#D80B1320" />
-            <stroke android:width="1.2dp" android:color="#3500F0FF" />
-            <corners android:radius="10dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#D8101626"
+                android:endColor="#E6060912" />
+            <stroke
+                android:width="1dp"
+                android:color="#2000E5FF" />
+            <corners android:radius="16dp" />
         </shape>
     </item>
 </selector>
