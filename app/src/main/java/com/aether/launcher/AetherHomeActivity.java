@@ -88,7 +88,7 @@ public class AetherHomeActivity extends Activity {
     private TextView dossierAppPackage;
     private ImageView heroAppBanner;
     private View heroAppIconFrame;
-    private View btnHeroLaunch;
+    private TextView btnHeroLaunch;
     private AppModel currentlyFocusedApp;
 
     // Lower Shelf: Category Tabs & Horizontal Carousel
@@ -109,10 +109,21 @@ public class AetherHomeActivity extends Activity {
     private TextView consoleOutput;
     private EditText inputCommand;
     private ScrollView consoleScroll;
+    private View lastFocusedViewBeforeOverlay;
 
     private GestureDetector gestureDetector;
     private final Handler chronoHandler = new Handler(Looper.getMainLooper());
     private final SimpleDateFormat utcFormat = new SimpleDateFormat("HH:mm:ss", Locale.US);
+
+    // Tactile Focus Scaler and Audio Feedback for TV Remote
+    private final View.OnFocusChangeListener buttonFocusScaler = (v, hasFocus) -> {
+        if (hasFocus) {
+            v.animate().scaleX(1.06f).scaleY(1.06f).setDuration(120).start();
+            CyberSoundSynth.get().playDataClick();
+        } else {
+            v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -253,10 +264,77 @@ public class AetherHomeActivity extends Activity {
             });
         }
 
-        findViewById(R.id.btn_close_apps).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            closeAllOverlays();
-        });
+        // Tactile Focus Scaler and Audio Feedback for TV Remote
+        if (btnHeroLaunch != null) btnHeroLaunch.setOnFocusChangeListener(buttonFocusScaler);
+        if (btnToggleHero != null) btnToggleHero.setOnFocusChangeListener(buttonFocusScaler);
+        if (btnApps != null) btnApps.setOnFocusChangeListener(buttonFocusScaler);
+        if (btnArcade != null) btnArcade.setOnFocusChangeListener(buttonFocusScaler);
+        if (btnIptv != null) btnIptv.setOnFocusChangeListener(buttonFocusScaler);
+        if (btnTerminal != null) btnTerminal.setOnFocusChangeListener(buttonFocusScaler);
+        if (btnThemeCycle != null) btnThemeCycle.setOnFocusChangeListener(buttonFocusScaler);
+
+        // Bi-directional D-Pad remote navigation listeners
+        View.OnKeyListener heroButtonDownListener = (v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (shelfCategoryTabs != null && shelfCategoryTabs.getChildCount() > 0) {
+                    View target = null;
+                    for (int i = 0; i < shelfCategoryTabs.getChildCount(); i++) {
+                        if (shelfCategoryTabs.getChildAt(i).isSelected()) {
+                            target = shelfCategoryTabs.getChildAt(i);
+                            break;
+                        }
+                    }
+                    if (target == null) target = shelfCategoryTabs.getChildAt(0);
+                    if (target != null) {
+                        target.requestFocus();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        if (btnHeroLaunch != null) btnHeroLaunch.setOnKeyListener(heroButtonDownListener);
+        if (btnToggleHero != null) btnToggleHero.setOnKeyListener(heroButtonDownListener);
+
+        View.OnKeyListener dockUpListener = (v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (recyclerHorizontalShelf != null && recyclerHorizontalShelf.getChildCount() > 0) {
+                    View shelfChild = recyclerHorizontalShelf.getFocusedChild();
+                    if (shelfChild != null) {
+                        shelfChild.requestFocus();
+                        return true;
+                    }
+                    recyclerHorizontalShelf.getChildAt(0).requestFocus();
+                    return true;
+                }
+            }
+            return false;
+        };
+        if (btnApps != null) btnApps.setOnKeyListener(dockUpListener);
+        if (btnArcade != null) btnArcade.setOnKeyListener(dockUpListener);
+        if (btnIptv != null) btnIptv.setOnKeyListener(dockUpListener);
+        if (btnTerminal != null) btnTerminal.setOnKeyListener(dockUpListener);
+
+        if (btnThemeCycle != null) {
+            btnThemeCycle.setOnKeyListener((v, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (btnHeroLaunch != null) {
+                        btnHeroLaunch.requestFocus();
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+
+        View btnCloseApps = findViewById(R.id.btn_close_apps);
+        if (btnCloseApps != null) {
+            btnCloseApps.setOnFocusChangeListener(buttonFocusScaler);
+            btnCloseApps.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                closeAllOverlays();
+            });
+        }
     }
 
     private void cycleTheme() {
@@ -462,9 +540,34 @@ public class AetherHomeActivity extends Activity {
                 refreshAppList();
             });
 
+            tab.setOnKeyListener((v, keyCode, event) -> {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                        if (recyclerHorizontalShelf != null && recyclerHorizontalShelf.getChildCount() > 0) {
+                            View shelfChild = recyclerHorizontalShelf.getFocusedChild();
+                            if (shelfChild != null) {
+                                shelfChild.requestFocus();
+                                return true;
+                            }
+                            recyclerHorizontalShelf.getChildAt(0).requestFocus();
+                            return true;
+                        }
+                    } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                        if (btnHeroLaunch != null) {
+                            btnHeroLaunch.requestFocus();
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+
             tab.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
+                    v.animate().scaleX(1.06f).scaleY(1.06f).setDuration(120).start();
                     CyberSoundSynth.get().playDataClick();
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
                 }
             });
 
@@ -521,8 +624,14 @@ public class AetherHomeActivity extends Activity {
         }
 
         if (btnHeroLaunch != null) {
+            String appName = app.getAppName();
+            if (appName != null && !appName.isEmpty() && appName.length() <= 16) {
+                btnHeroLaunch.setText("▶  OPEN " + appName.toUpperCase(Locale.US));
+            } else {
+                btnHeroLaunch.setText("▶  OPEN APPLICATION");
+            }
             btnHeroLaunch.setOnClickListener(v -> {
-                CyberSoundSynth.get().playChirp();
+                CyberSoundSynth.get().playWarp();
                 try {
                     Intent intent = getPackageManager().getLaunchIntentForPackage(app.getPackageName());
                     if (intent != null) {
@@ -538,7 +647,7 @@ public class AetherHomeActivity extends Activity {
         categoriesChipContainer = findViewById(R.id.categories_chip_container);
 
         recyclerApps.setLayoutManager(new GridLayoutManager(this, 4));
-        fallbackMatrixAdapter = new HolographicDeckAdapter(this, new HolographicDeckAdapter.OnAppActionListener() {
+        fallbackMatrixAdapter = new HolographicDeckAdapter(this, false, new HolographicDeckAdapter.OnAppActionListener() {
             @Override
             public void onAppLaunched(AppModel app) {
                 closeAllOverlays();
@@ -564,7 +673,17 @@ public class AetherHomeActivity extends Activity {
             chip.setPadding(16, 8, 16, 8);
             chip.setFocusable(true);
             chip.setClickable(true);
+            chip.setNextFocusUpId(R.id.btn_close_apps);
+            chip.setNextFocusDownId(R.id.recycler_apps);
             chip.setBackgroundResource(R.drawable.bg_cyber_tab_selector);
+            chip.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    v.animate().scaleX(1.06f).scaleY(1.06f).setDuration(120).start();
+                    CyberSoundSynth.get().playDataClick();
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+                }
+            });
             chip.setOnClickListener(v -> {
                 CyberSoundSynth.get().playDataClick();
                 activeCategory = cat;
@@ -631,12 +750,20 @@ public class AetherHomeActivity extends Activity {
 
         consoleOutput.setText("// AETHER NEXUS TERMINAL ONLINE //\nREADY FOR QUERY OR APP EXECUTION...\nNOTE: Fire OS Vizzini Speech Service is restricted to signature apps.\n");
 
-        overlayConsole.findViewById(R.id.btn_close_console).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            closeAllOverlays();
-        });
+        View btnCloseConsole = overlayConsole.findViewById(R.id.btn_close_console);
+        if (btnCloseConsole != null) {
+            btnCloseConsole.setOnFocusChangeListener(buttonFocusScaler);
+            btnCloseConsole.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                closeAllOverlays();
+            });
+        }
 
-        overlayConsole.findViewById(R.id.btn_exec_command).setOnClickListener(v -> executeCurrentCommand());
+        View btnExec = overlayConsole.findViewById(R.id.btn_exec_command);
+        if (btnExec != null) {
+            btnExec.setOnFocusChangeListener(buttonFocusScaler);
+            btnExec.setOnClickListener(v -> executeCurrentCommand());
+        }
 
         inputCommand.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEND ||
@@ -695,6 +822,7 @@ public class AetherHomeActivity extends Activity {
     }
 
     public void openAppMatrix() {
+        lastFocusedViewBeforeOverlay = getCurrentFocus();
         closeAllOverlays();
         drawerAppMatrix.setVisibility(View.VISIBLE);
         drawerAppMatrix.setAlpha(0f);
@@ -703,6 +831,7 @@ public class AetherHomeActivity extends Activity {
     }
 
     public void openTerminal() {
+        lastFocusedViewBeforeOverlay = getCurrentFocus();
         closeAllOverlays();
         overlayConsole.setVisibility(View.VISIBLE);
         overlayConsole.setAlpha(0f);
@@ -711,14 +840,18 @@ public class AetherHomeActivity extends Activity {
     }
 
     public void openStreamDeck() {
+        lastFocusedViewBeforeOverlay = getCurrentFocus();
         closeAllOverlays();
         overlayStreamDeck.setVisibility(View.VISIBLE);
         overlayStreamDeck.setAlpha(0f);
         overlayStreamDeck.animate().alpha(1f).setDuration(160).start();
         streamDeck.start();
+        View btnNext = overlayStreamDeck.findViewById(R.id.btn_next_ch);
+        if (btnNext != null) btnNext.requestFocus();
     }
 
     public void openArcade(String gameType) {
+        lastFocusedViewBeforeOverlay = getCurrentFocus();
         closeAllOverlays();
         overlayArcade.setVisibility(View.VISIBLE);
         if ("hack".equalsIgnoreCase(gameType)) {
@@ -736,7 +869,11 @@ public class AetherHomeActivity extends Activity {
         overlayStreamDeck.setVisibility(View.GONE);
         overlayArcade.setVisibility(View.GONE);
         streamDeck.stop();
-        recyclerHorizontalShelf.requestFocus();
+        if (lastFocusedViewBeforeOverlay != null && lastFocusedViewBeforeOverlay.isShown()) {
+            lastFocusedViewBeforeOverlay.requestFocus();
+        } else {
+            recyclerHorizontalShelf.requestFocus();
+        }
     }
 
     @Override

@@ -49,29 +49,55 @@ public class CyberStreamDeck {
     }
 
     private void initControls() {
-        rootView.findViewById(R.id.btn_close_stream).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            stop();
-            if (closeListener != null) closeListener.onClose();
-        });
-
-        rootView.findViewById(R.id.btn_prev_ch).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            prevChannel();
-        });
-
-        rootView.findViewById(R.id.btn_next_ch).setOnClickListener(v -> {
-            CyberSoundSynth.get().playChirp();
-            nextChannel();
-        });
-
-        rootView.findViewById(R.id.btn_load_url).setOnClickListener(v -> {
-            CyberSoundSynth.get().playPowerUp();
-            String url = urlInput.getText().toString().trim();
-            if (!url.isEmpty()) {
-                playUrl(url, "CUSTOM STREAM");
+        View.OnFocusChangeListener streamBtnFocus = (v, hasFocus) -> {
+            if (hasFocus) {
+                v.animate().scaleX(1.06f).scaleY(1.06f).setDuration(120).start();
+                CyberSoundSynth.get().playDataClick();
+            } else {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
             }
-        });
+        };
+
+        View btnClose = rootView.findViewById(R.id.btn_close_stream);
+        View btnPrev = rootView.findViewById(R.id.btn_prev_ch);
+        View btnNext = rootView.findViewById(R.id.btn_next_ch);
+        View btnLoad = rootView.findViewById(R.id.btn_load_url);
+
+        if (btnClose != null) {
+            btnClose.setOnFocusChangeListener(streamBtnFocus);
+            btnClose.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                stop();
+                if (closeListener != null) closeListener.onClose();
+            });
+        }
+
+        if (btnPrev != null) {
+            btnPrev.setOnFocusChangeListener(streamBtnFocus);
+            btnPrev.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                prevChannel();
+            });
+        }
+
+        if (btnNext != null) {
+            btnNext.setOnFocusChangeListener(streamBtnFocus);
+            btnNext.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                nextChannel();
+            });
+        }
+
+        if (btnLoad != null) {
+            btnLoad.setOnFocusChangeListener(streamBtnFocus);
+            btnLoad.setOnClickListener(v -> {
+                CyberSoundSynth.get().playPowerUp();
+                String url = urlInput.getText().toString().trim();
+                if (!url.isEmpty()) {
+                    playUrl(url, "CUSTOM STREAM");
+                }
+            });
+        }
 
         videoPlayer.setOnPreparedListener(mp -> {
             statusText.setText("SIGNAL // 1080p ONLINE");

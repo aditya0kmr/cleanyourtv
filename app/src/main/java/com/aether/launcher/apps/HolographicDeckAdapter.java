@@ -31,12 +31,18 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
     }
 
     private final Context context;
+    private final boolean isShelf;
     private final List<AppModel> apps = new ArrayList<>();
     private final OnAppActionListener actionListener;
     private OnAppFocusChangeListener focusChangeListener;
 
     public HolographicDeckAdapter(Context context, OnAppActionListener listener) {
+        this(context, true, listener);
+    }
+
+    public HolographicDeckAdapter(Context context, boolean isShelf, OnAppActionListener listener) {
         this.context = context;
+        this.isShelf = isShelf;
         this.actionListener = listener;
     }
 
@@ -98,37 +104,58 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             pinDot.setVisibility(app.isPinned() ? View.VISIBLE : View.GONE);
             pinDot.setBackgroundColor(HologramTheme.get().getPrimary());
 
-            // Prevent remote focus trapping
-            container.setNextFocusUpId(R.id.shelf_category_tabs);
-            container.setNextFocusDownId(R.id.btn_open_apps);
+            // Focus and D-Pad Remote Navigation
+            if (isShelf) {
+                container.setNextFocusUpId(R.id.shelf_category_tabs);
+                container.setNextFocusDownId(R.id.btn_open_apps);
 
-            // Deterministic D-Pad UP: directly route to active category tab from any card position
-            container.setOnKeyListener((v, keyCode, event) -> {
-                if (keyCode == KeyEvent.KEYCODE_DPAD_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (context instanceof Activity) {
-                        View tabsContainer = ((Activity) context).findViewById(R.id.shelf_category_tabs);
-                        if (tabsContainer instanceof ViewGroup) {
-                            ViewGroup vg = (ViewGroup) tabsContainer;
-                            View targetTab = null;
-                            for (int i = 0; i < vg.getChildCount(); i++) {
-                                View child = vg.getChildAt(i);
-                                if (child.isSelected()) {
-                                    targetTab = child;
-                                    break;
+                container.setOnKeyListener((v, keyCode, event) -> {
+                    if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                            if (context instanceof Activity) {
+                                View tabsContainer = ((Activity) context).findViewById(R.id.shelf_category_tabs);
+                                if (tabsContainer instanceof ViewGroup) {
+                                    ViewGroup vg = (ViewGroup) tabsContainer;
+                                    View targetTab = null;
+                                    for (int i = 0; i < vg.getChildCount(); i++) {
+                                        View child = vg.getChildAt(i);
+                                        if (child.isSelected()) {
+                                            targetTab = child;
+                                            break;
+                                        }
+                                    }
+                                    if (targetTab == null && vg.getChildCount() > 0) {
+                                        targetTab = vg.getChildAt(0);
+                                    }
+                                    if (targetTab != null) {
+                                        targetTab.requestFocus();
+                                        return true;
+                                    }
                                 }
                             }
-                            if (targetTab == null && vg.getChildCount() > 0) {
-                                targetTab = vg.getChildAt(0);
+                        } else if (keyCode == KeyEvent.KEYCODE_MENU) {
+                            CyberSoundSynth.get().playChirp();
+                            if (actionListener != null) {
+                                actionListener.onAppLongClicked(app);
                             }
-                            if (targetTab != null) {
-                                targetTab.requestFocus();
-                                return true;
-                            }
+                            return true;
                         }
                     }
-                }
-                return false;
-            });
+                    return false;
+                });
+            } else {
+                // In App Matrix grid: allow normal 2D grid navigation and remote MENU key support
+                container.setOnKeyListener((v, keyCode, event) -> {
+                    if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_MENU) {
+                        CyberSoundSynth.get().playChirp();
+                        if (actionListener != null) {
+                            actionListener.onAppLongClicked(app);
+                        }
+                        return true;
+                    }
+                    return false;
+                });
+            }
 
             // TV Remote Focus Scaling (CleanYourTV 1.10x Decelerate Interpolator) & Audio
             container.setOnFocusChangeListener((v, hasFocus) -> {

@@ -42,6 +42,10 @@
         android:fontFamily="sans-serif-medium"
         android:gravity="center"
         android:maxLines="1"
+        android:shadowColor="#D0000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="2"
         android:textColor="#FFFFFFFF"
         android:textSize="12.5sp"
         android:letterSpacing="0.01" />

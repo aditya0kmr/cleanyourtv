@@ -83,9 +83,9 @@
                 android:nextFocusDown="@+id/btn_hero_launch"
                 android:fontFamily="sans-serif-medium"
                 android:paddingStart="12dp"
-                android:paddingTop="3dp"
+                android:paddingTop="4dp"
                 android:paddingEnd="12dp"
-                android:paddingBottom="3dp"
+                android:paddingBottom="4dp"
                 android:text="THEME"
                 android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
@@ -495,13 +495,14 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
+                android:nextFocusDown="@+id/categories_chip_container"
                 android:fontFamily="monospace"
                 android:paddingStart="14dp"
                 android:paddingTop="8dp"
                 android:paddingEnd="14dp"
                 android:paddingBottom="8dp"
                 android:text="[ CLOSE ]"
-                android:textColor="#00F0FF"
+                android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
         </LinearLayout>
 
