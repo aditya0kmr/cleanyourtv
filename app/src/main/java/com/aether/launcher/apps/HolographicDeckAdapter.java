@@ -1,8 +1,10 @@
 package com.aether.launcher.apps;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,6 +101,34 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             // Prevent remote focus trapping
             container.setNextFocusUpId(R.id.shelf_category_tabs);
             container.setNextFocusDownId(R.id.btn_open_apps);
+
+            // Deterministic D-Pad UP: directly route to active category tab from any card position
+            container.setOnKeyListener((v, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_UP && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (context instanceof Activity) {
+                        View tabsContainer = ((Activity) context).findViewById(R.id.shelf_category_tabs);
+                        if (tabsContainer instanceof ViewGroup) {
+                            ViewGroup vg = (ViewGroup) tabsContainer;
+                            View targetTab = null;
+                            for (int i = 0; i < vg.getChildCount(); i++) {
+                                View child = vg.getChildAt(i);
+                                if (child.isSelected()) {
+                                    targetTab = child;
+                                    break;
+                                }
+                            }
+                            if (targetTab == null && vg.getChildCount() > 0) {
+                                targetTab = vg.getChildAt(0);
+                            }
+                            if (targetTab != null) {
+                                targetTab.requestFocus();
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            });
 
             // TV Remote Focus Scaling (CleanYourTV 1.10x Decelerate Interpolator) & Audio
             container.setOnFocusChangeListener((v, hasFocus) -> {
