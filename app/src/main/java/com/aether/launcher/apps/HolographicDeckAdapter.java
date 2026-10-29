@@ -23,13 +23,22 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
         void onAppLongClicked(AppModel app);
     }
 
+    public interface OnAppFocusChangeListener {
+        void onAppFocused(AppModel app);
+    }
+
     private final Context context;
     private final List<AppModel> apps = new ArrayList<>();
     private final OnAppActionListener actionListener;
+    private OnAppFocusChangeListener focusChangeListener;
 
     public HolographicDeckAdapter(Context context, OnAppActionListener listener) {
         this.context = context;
         this.actionListener = listener;
+    }
+
+    public void setOnAppFocusChangeListener(OnAppFocusChangeListener listener) {
+        this.focusChangeListener = listener;
     }
 
     public void setApps(List<AppModel> newApps) {
@@ -38,6 +47,10 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             apps.addAll(newApps);
         }
         notifyDataSetChanged();
+    }
+
+    public List<AppModel> getApps() {
+        return apps;
     }
 
     @NonNull
@@ -82,11 +95,26 @@ public class HolographicDeckAdapter extends RecyclerView.Adapter<HolographicDeck
             pinDot.setVisibility(app.isPinned() ? View.VISIBLE : View.GONE);
             pinDot.setBackgroundColor(HologramTheme.get().getPrimary());
 
+            // TV Remote Focus Scaling & Audio
+            container.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    v.animate().scaleX(1.12f).scaleY(1.12f).translationZ(8f).setDuration(120).start();
+                    v.setSelected(true);
+                    CyberSoundSynth.get().playDataClick();
+                    if (focusChangeListener != null) {
+                        focusChangeListener.onAppFocused(app);
+                    }
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(120).start();
+                    v.setSelected(false);
+                }
+            });
+
             container.setOnClickListener(v -> {
                 CyberSoundSynth.get().playWarp();
                 // Subtle press animation
-                v.animate().scaleX(0.92f).scaleY(0.92f).setDuration(80).withEndAction(() -> {
-                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(80).start();
+                v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80).withEndAction(() -> {
+                    v.animate().scaleX(1.12f).scaleY(1.12f).setDuration(80).start();
                     launchApp(app);
                 }).start();
             });

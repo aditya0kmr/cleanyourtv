@@ -41,10 +41,14 @@ public class CyberWidgetHostManager {
     }
 
     public void pickWidget() {
-        int appWidgetId = appWidgetHost.allocateAppWidgetId();
-        Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
-        pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        activity.startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET);
+        try {
+            int appWidgetId = appWidgetHost.allocateAppWidgetId();
+            Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
+            pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            activity.startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET);
+        } catch (Exception e) {
+            android.widget.Toast.makeText(activity, "SYSTEM // WIDGET PICKER UNSUPPORTED ON FIRE OS", android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void handleActivityResult(int requestCode, int resultCode, Intent data, ViewGroup container) {

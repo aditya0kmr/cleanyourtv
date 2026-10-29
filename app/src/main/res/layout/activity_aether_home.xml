@@ -5,13 +5,518 @@
     android:layout_height="match_parent"
     android:background="@color/bg_dark">
 
-    <!-- LAYER 1: Core Arc Reactor HUD & Kinetic Visualizer -->
-    <com.aether.launcher.hud.ArcReactorView
-        android:id="@+id/arc_reactor_view"
+    <!-- PRIMARY 16:9 SPLIT-STAGE COMMAND CONSOLE -->
+    <LinearLayout
+        android:id="@+id/main_stage_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <!-- LAYER 2: Android AppWidget Container -->
+        <!-- 1. TOP DIAGNOSTICS & STARDATE BAR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:background="#D0060A10"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp">
+
+            <TextView
+                android:id="@+id/txt_tactical_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:text="// AETHER — NEXUS //"
+                android:textColor="#00F0FF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txt_chrono_stardate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:text="[ 00:00:00 UTC // STARDATE 2026.302 ]"
+                android:textColor="#F0F8FF"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/txt_telemetry_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="monospace"
+                android:text="NET_ONLINE // 144M"
+                android:textColor="#00F0FF"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/btn_theme_cycle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="monospace"
+                android:paddingStart="12dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="4dp"
+                android:text="[ THEME ]"
+                android:textColor="#00F0FF"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 2. MIDDLE SPLIT STAGE: HERO MONITOR & DYNAMIC DOSSIER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp">
+
+            <!-- LEFT STAGE: HERO MONITOR / CORE (Mutual Exclusion Engine) -->
+            <FrameLayout
+                android:id="@+id/container_hero_stage"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1.2"
+                android:background="@drawable/bg_cyber_card"
+                android:padding="8dp">
+
+                <!-- Mode 1: Kinetic Arc Reactor Visualizer -->
+                <com.aether.launcher.hud.ArcReactorView
+                    android:id="@+id/arc_reactor_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- Mode 2: Docked Live Picture-in-Picture AV Monitor -->
+                <FrameLayout
+                    android:id="@+id/hero_video_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
+
+                    <VideoView
+                        android:id="@+id/hero_video_player"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center" />
+
+                    <!-- Scanline HUD effect -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#1500F0FF" />
+
+                    <!-- Stream Info Overlay -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:background="#A0000000"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="4dp">
+
+                        <TextView
+                            android:id="@+id/hero_channel_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="monospace"
+                            android:text="CH 01 // NASA TV LIVE"
+                            android:textColor="#F0F8FF"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/hero_stream_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:text="SIGNAL // 1080p ONLINE"
+                            android:textColor="#00FF66"
+                            android:textSize="9sp" />
+
+                        <TextView
+                            android:id="@+id/btn_hero_prev_ch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_cyber_button_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="monospace"
+                            android:paddingStart="6dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="6dp"
+                            android:paddingBottom="2dp"
+                            android:text="&lt;"
+                            android:textColor="#00F0FF"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/btn_hero_next_ch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_cyber_button_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="monospace"
+                            android:paddingStart="6dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="6dp"
+                            android:paddingBottom="2dp"
+                            android:text="&gt;"
+                            android:textColor="#00F0FF"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- Stage Header & Mutual-Exclusion Toggle -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
+
+                    <TextView
+                        android:id="@+id/txt_hero_mode"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="monospace"
+                        android:text="// HERO STAGE: TACTICAL CORE //"
+                        android:textColor="#00F0FF"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btn_toggle_hero"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_cyber_button_selector"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="monospace"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="[ SWITCH TO AV MONITOR ]"
+                        android:textColor="#00F0FF"
+                        android:textSize="9sp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- RIGHT STAGE: DYNAMIC ACTIVE DOSSIER & HARDWARE RADAR -->
+            <LinearLayout
+                android:id="@+id/container_dossier_stage"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.95"
+                android:background="@drawable/bg_cyber_card"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <!-- Header -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="// ACTIVE APPLICATION DOSSIER //"
+                    android:textColor="#00F0FF"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <!-- Dynamic Focused App Profile -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/dossier_app_icon"
+                        android:layout_width="54dp"
+                        android:layout_height="54dp"
+                        android:layout_marginEnd="12dp"
+                        android:background="@drawable/bg_cyber_card"
+                        android:padding="4dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_launcher" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/dossier_app_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="monospace"
+                            android:maxLines="1"
+                            android:text="AETHER — NEXUS"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/dossier_app_category"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="monospace"
+                            android:text="STATUS: INSTALLED // [SYSTEM]"
+                            android:textColor="#00F0FF"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/dossier_app_package"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:fontFamily="monospace"
+                            android:maxLines="1"
+                            android:text="com.aether.launcher"
+                            android:textColor="#7A8E9E"
+                            android:textSize="9sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="#2000F0FF" />
+
+                <!-- Hardware Telemetry Radar -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="// HARDWARE TELEMETRY RADAR //"
+                    android:textColor="#00F0FF"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/radar_cpu_gauge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="monospace"
+                    android:text="CPU LOAD: [■■■■■□□□□□] 48% (4 CORES)"
+                    android:textColor="#F0F8FF"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/radar_ram_gauge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="monospace"
+                    android:text="RAM LOAD: [■■■■■■□□□□] 62% (570MB / 922MB)"
+                    android:textColor="#F0F8FF"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/radar_power_gauge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="monospace"
+                    android:text="TV POWER: AC LINE ACTIVE // 32.4°C"
+                    android:textColor="#F0F8FF"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/radar_net_gauge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="monospace"
+                    android:text="NETWORK : 5GHz WIFI // 144 Mbps ONLINE"
+                    android:textColor="#F0F8FF"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 3. LOWER SHELF AREA: CATEGORY TABS & HORIZONTAL CAROUSEL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#B0060A10"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <!-- Category Tabs -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/shelf_category_tabs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <!-- Horizontal App Carousel Shelf (10-foot TV Remote D-Pad Navigation) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_horizontal_shelf"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:focusable="true"
+                android:descendantFocusability="beforeDescendants"
+                android:nextFocusUp="@+id/shelf_category_tabs"
+                android:nextFocusDown="@+id/btn_open_terminal"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="4dp"
+                android:scrollbars="none" />
+        </LinearLayout>
+
+        <!-- 4. BOTTOM TACTICAL HINT & SHORTCUT BAR -->
+        <LinearLayout
+            android:id="@+id/bottom_nav_bar"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:background="#E605080E"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp">
+
+            <TextView
+                android:id="@+id/txt_bottom_hints"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:text="[D-PAD] NAVIGATE  [OK] LAUNCH  [UP] HERO/TABS  [DOWN] CONSOLE"
+                android:textColor="#6000F0FF"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/btn_open_terminal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="monospace"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:text="TERMINAL"
+                android:textColor="#00F0FF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_open_apps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="monospace"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:text="APP MATRIX"
+                android:textColor="#00F0FF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_open_arcade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="monospace"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:text="ARCADE"
+                android:textColor="#00F0FF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_open_iptv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="monospace"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:text="FULL AV"
+                android:textColor="#00F0FF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_add_widget"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="monospace"
+                android:paddingStart="10dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:text="+WIDGET"
+                android:textColor="#00F0FF"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- LAYER 2: Android AppWidget Container (Optional) -->
     <FrameLayout
         android:id="@+id/widget_container"
         android:layout_width="match_parent"
@@ -22,162 +527,7 @@
         android:layout_marginEnd="24dp"
         android:visibility="gone" />
 
-    <!-- LAYER 3: Top Diagnostics Telemetry Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:background="#A0060A10"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="24dp"
-        android:paddingTop="14dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="14dp">
-
-        <TextView
-            android:id="@+id/txt_telemetry_left"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="monospace"
-            android:text="POWER // AC ONLINE"
-            android:textColor="#00F0FF"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/btn_theme_cycle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_cyber_button_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="monospace"
-            android:paddingStart="14dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="6dp"
-            android:text="[ THEME ]"
-            android:textColor="#00F0FF"
-            android:textSize="11sp" />
-
-        <TextView
-            android:id="@+id/txt_telemetry_right"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="monospace"
-            android:gravity="end"
-            android:text="NET_ONLINE // 144M"
-            android:textColor="#00F0FF"
-            android:textSize="12sp" />
-    </LinearLayout>
-
-    <!-- LAYER 4: Bottom Orbital Navigation Bar -->
-    <LinearLayout
-        android:id="@+id/bottom_nav_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#B0060A10"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingStart="20dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="16dp">
-
-        <TextView
-            android:id="@+id/btn_open_terminal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_cyber_button_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="monospace"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="TERMINAL"
-            android:textColor="#00F0FF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/btn_open_apps"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_cyber_button_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="monospace"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="APP MATRIX"
-            android:textColor="#00F0FF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/btn_open_iptv"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_cyber_button_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="monospace"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="AV STREAM"
-            android:textColor="#00F0FF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/btn_open_arcade"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_cyber_button_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="monospace"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="ARCADE"
-            android:textColor="#00F0FF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/btn_add_widget"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="0.8"
-            android:background="@drawable/bg_cyber_button_selector"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="monospace"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="+WIDGET"
-            android:textColor="#00F0FF"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <!-- LAYER 5: Holographic App Matrix Overlay -->
+    <!-- LAYER 5: Holographic App Matrix Overlay (Strictly Preserved Fallback) -->
     <LinearLayout
         android:id="@+id/drawer_app_matrix"
         android:layout_width="match_parent"
@@ -200,7 +550,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="monospace"
-                android:text="// HOLOGRAPHIC APP MATRIX //"
+                android:text="// HOLOGRAPHIC APP MATRIX (FALLBACK GRID) //"
                 android:textColor="#00F0FF"
                 android:textSize="14sp"
                 android:textStyle="bold" />
