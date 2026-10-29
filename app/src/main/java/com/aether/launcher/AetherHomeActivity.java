@@ -67,14 +67,17 @@ public class AetherHomeActivity extends Activity {
     private TextView txtTelemetryTop;
     private TextView btnThemeCycle;
 
-    // Hero Stage (Mutual Exclusion Engine)
+    // Hero Stage (Cinematic Artwork, Ambient Core, Live AV Engine)
+    private enum HeroStageMode { CINEMATIC_ART, AMBIENT_CORE, LIVE_AV }
+    private HeroStageMode currentHeroMode = HeroStageMode.CINEMATIC_ART;
     private FrameLayout containerHeroStage;
+    private FrameLayout heroArtContainer;
+    private ImageView heroBackdropImage;
     private FrameLayout heroVideoContainer;
     private VideoView heroVideoPlayer;
     private TextView btnToggleHero;
     private TextView heroChannelName;
     private TextView heroStreamStatus;
-    private boolean isHeroVideoActive = false;
     private final List<StreamChannel> heroChannels = new ArrayList<>();
     private int currentHeroChannelIdx = 0;
 
@@ -153,14 +156,25 @@ public class AetherHomeActivity extends Activity {
         txtTelemetryTop = findViewById(R.id.txt_telemetry_top);
         btnThemeCycle = findViewById(R.id.btn_theme_cycle);
 
-        // Preview Stage: Hero Core & Video Monitor
+        // Preview Stage: Hero Core, Cinematic Art & Video Monitor
         containerHeroStage = findViewById(R.id.container_hero_stage);
+        heroArtContainer = findViewById(R.id.hero_art_container);
+        heroBackdropImage = findViewById(R.id.hero_backdrop_image);
         arcReactorView = findViewById(R.id.arc_reactor_view);
         heroVideoContainer = findViewById(R.id.hero_video_container);
         heroVideoPlayer = findViewById(R.id.hero_video_player);
         btnToggleHero = findViewById(R.id.btn_toggle_hero);
         heroChannelName = findViewById(R.id.hero_channel_name);
         heroStreamStatus = findViewById(R.id.hero_stream_status);
+
+        // Default Hero Presentation: Cinematic Artwork Mode
+        if (heroArtContainer != null) heroArtContainer.setVisibility(View.VISIBLE);
+        if (arcReactorView != null) {
+            arcReactorView.setVisibility(View.GONE);
+            arcReactorView.pauseAnimation();
+        }
+        if (heroVideoContainer != null) heroVideoContainer.setVisibility(View.GONE);
+        if (btnToggleHero != null) btnToggleHero.setText("⟐  AMBIENT CORE");
 
         // Featured Spotlight Stage
         dossierAppIcon = findViewById(R.id.dossier_app_icon);
@@ -231,6 +245,14 @@ public class AetherHomeActivity extends Activity {
             });
         }
 
+        View btnTerminal = findViewById(R.id.btn_open_terminal);
+        if (btnTerminal != null) {
+            btnTerminal.setOnClickListener(v -> {
+                CyberSoundSynth.get().playChirp();
+                openTerminal();
+            });
+        }
+
         findViewById(R.id.btn_close_apps).setOnClickListener(v -> {
             CyberSoundSynth.get().playChirp();
             closeAllOverlays();
@@ -253,22 +275,47 @@ public class AetherHomeActivity extends Activity {
     }
 
     private void toggleHeroStage() {
-        if (!isHeroVideoActive) {
-            // Switch to Video Monitor: Pause Kinetic Arc Reactor to preserve 1GB RAM budget
-            isHeroVideoActive = true;
-            arcReactorView.pauseAnimation();
-            arcReactorView.setVisibility(View.GONE);
-            heroVideoContainer.setVisibility(View.VISIBLE);
-            btnToggleHero.setText("❖ AMBIENT CORE");
-            tuneHeroChannel();
-        } else {
-            // Switch to Kinetic Core: Stop video decoder playback to preserve RAM
-            isHeroVideoActive = false;
-            heroVideoPlayer.stopPlayback();
-            heroVideoContainer.setVisibility(View.GONE);
-            arcReactorView.setVisibility(View.VISIBLE);
-            arcReactorView.resumeAnimation();
-            btnToggleHero.setText("▶ LIVE AV");
+        switch (currentHeroMode) {
+            case CINEMATIC_ART:
+                // Switch to Ambient Core
+                currentHeroMode = HeroStageMode.AMBIENT_CORE;
+                if (heroArtContainer != null) heroArtContainer.setVisibility(View.GONE);
+                if (heroVideoContainer != null) {
+                    heroVideoPlayer.stopPlayback();
+                    heroVideoContainer.setVisibility(View.GONE);
+                }
+                if (arcReactorView != null) {
+                    arcReactorView.setVisibility(View.VISIBLE);
+                    arcReactorView.resumeAnimation();
+                }
+                if (btnToggleHero != null) btnToggleHero.setText("▶  LIVE AV");
+                break;
+            case AMBIENT_CORE:
+                // Switch to Live AV
+                currentHeroMode = HeroStageMode.LIVE_AV;
+                if (arcReactorView != null) {
+                    arcReactorView.pauseAnimation();
+                    arcReactorView.setVisibility(View.GONE);
+                }
+                if (heroArtContainer != null) heroArtContainer.setVisibility(View.GONE);
+                if (heroVideoContainer != null) {
+                    heroVideoContainer.setVisibility(View.VISIBLE);
+                }
+                if (btnToggleHero != null) btnToggleHero.setText("⟐  CINEMATIC ART");
+                tuneHeroChannel();
+                break;
+            case LIVE_AV:
+                // Switch back to Cinematic Artwork
+                currentHeroMode = HeroStageMode.CINEMATIC_ART;
+                if (heroVideoPlayer != null) heroVideoPlayer.stopPlayback();
+                if (heroVideoContainer != null) heroVideoContainer.setVisibility(View.GONE);
+                if (arcReactorView != null) {
+                    arcReactorView.pauseAnimation();
+                    arcReactorView.setVisibility(View.GONE);
+                }
+                if (heroArtContainer != null) heroArtContainer.setVisibility(View.VISIBLE);
+                if (btnToggleHero != null) btnToggleHero.setText("⟐  AMBIENT CORE");
+                break;
         }
     }
 
@@ -321,7 +368,7 @@ public class AetherHomeActivity extends Activity {
         telemetry.start(() -> runOnUiThread(this::refreshTelemetryDisplay));
 
         gyroManager.start((pitch, roll) -> {
-            if (!isHeroVideoActive) {
+            if (currentHeroMode == HeroStageMode.AMBIENT_CORE) {
                 arcReactorView.setParallax(pitch, roll);
             }
             overlayArcade.applyGyroInput(roll);
@@ -450,17 +497,23 @@ public class AetherHomeActivity extends Activity {
             dossierAppPackage.setText(app.isPinned() ? "★ PINNED FAVORITE  ·  1080p" : "1080p Television Optimized");
         }
 
-        // Show official 16:9 Leanback TV banner if available; fallback to high-res icon frame
+        // Show official 16:9 Leanback TV banner if available; fallback to high-res icon badge & cinematic backdrop
         if (heroAppBanner != null && heroAppIconFrame != null) {
             if (app.getBanner() != null) {
                 heroAppBanner.setImageDrawable(app.getBanner());
                 heroAppBanner.setVisibility(View.VISIBLE);
                 heroAppIconFrame.setVisibility(View.GONE);
+                if (heroBackdropImage != null) {
+                    heroBackdropImage.setImageDrawable(app.getBanner());
+                }
             } else {
                 heroAppBanner.setVisibility(View.GONE);
                 heroAppIconFrame.setVisibility(View.VISIBLE);
                 if (dossierAppIcon != null && app.getIcon() != null) {
                     dossierAppIcon.setImageDrawable(app.getIcon());
+                }
+                if (heroBackdropImage != null) {
+                    heroBackdropImage.setImageResource(R.drawable.bg_hero_cinematic);
                 }
             }
         } else if (dossierAppIcon != null && app.getIcon() != null) {
@@ -558,6 +611,9 @@ public class AetherHomeActivity extends Activity {
             }
             if (heroAppIconFrame != null) {
                 heroAppIconFrame.setVisibility(View.VISIBLE);
+            }
+            if (heroBackdropImage != null) {
+                heroBackdropImage.setImageResource(R.drawable.bg_hero_cinematic);
             }
             if (dossierAppIcon != null) {
                 dossierAppIcon.setImageResource(R.drawable.ic_launcher);
@@ -728,9 +784,9 @@ public class AetherHomeActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (isHeroVideoActive) {
+        if (currentHeroMode == HeroStageMode.LIVE_AV) {
             tuneHeroChannel();
-        } else if (arcReactorView != null) {
+        } else if (currentHeroMode == HeroStageMode.AMBIENT_CORE && arcReactorView != null) {
             arcReactorView.resumeAnimation();
         }
     }
@@ -754,7 +810,7 @@ public class AetherHomeActivity extends Activity {
             if (arcReactorView != null) {
                 arcReactorView.pauseAnimation();
             }
-            if (heroVideoPlayer != null && isHeroVideoActive) {
+            if (heroVideoPlayer != null && currentHeroMode == HeroStageMode.LIVE_AV) {
                 heroVideoPlayer.stopPlayback();
             }
         }

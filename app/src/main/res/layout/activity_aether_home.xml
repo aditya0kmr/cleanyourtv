@@ -3,7 +3,7 @@
     android:id="@+id/root_launcher"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark">
+    android:background="@drawable/bg_cinematic_space">
 
     <!-- PRIMARY 16:9 SPLIT-STAGE COMMAND CONSOLE -->
     <LinearLayout
@@ -12,25 +12,25 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 1. TOP HEADER & STATUS BAR (Apple-Grade Minimalist Header) -->
+        <!-- 1. TOP HEADER & STATUS BAR (Minimalist tvOS Header) -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="#4004070E"
+            android:layout_height="46dp"
+            android:background="#26030710"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="36dp"
-            android:paddingEnd="36dp">
+            android:paddingStart="40dp"
+            android:paddingEnd="40dp">
 
             <TextView
                 android:id="@+id/txt_tactical_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.14"
+                android:letterSpacing="0.12"
                 android:text="AETHER"
                 android:textColor="#FFFFFFFF"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -39,9 +39,9 @@
                 android:layout_marginStart="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.08"
-                android:text="NEXUS"
+                android:text="CINEMATIC"
                 android:textColor="#00E5FF"
-                android:textSize="12sp" />
+                android:textSize="11.5sp" />
 
             <View
                 android:layout_width="0dp"
@@ -55,8 +55,8 @@
                 android:layout_marginEnd="16dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="6:18 PM  ·  STARDATE 2026.302"
-                android:textColor="#D0E0EE"
-                android:textSize="13sp" />
+                android:textColor="#C0D4E8"
+                android:textSize="12.5sp" />
 
             <TextView
                 android:id="@+id/txt_telemetry_top"
@@ -66,9 +66,9 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:fontFamily="sans-serif-medium"
                 android:paddingStart="10dp"
-                android:paddingTop="4dp"
+                android:paddingTop="3dp"
                 android:paddingEnd="10dp"
-                android:paddingBottom="4dp"
+                android:paddingBottom="3dp"
                 android:text="Wi-Fi Online"
                 android:textColor="#00E5FF"
                 android:textSize="11sp" />
@@ -80,152 +80,63 @@
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
-                android:nextFocusDown="@+id/btn_toggle_hero"
+                android:nextFocusDown="@+id/btn_hero_launch"
                 android:fontFamily="sans-serif-medium"
                 android:paddingStart="12dp"
-                android:paddingTop="4dp"
+                android:paddingTop="3dp"
                 android:paddingEnd="12dp"
-                android:paddingBottom="4dp"
+                android:paddingBottom="3dp"
                 android:text="THEME"
                 android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 2. UNIFIED CINEMATIC HERO STAGE (Apple TV / tvOS Inspired Spotlight) -->
-        <LinearLayout
+        <!-- 2. EXPANSIVE CINEMATIC HERO STAGE (Unified Showcase with Artwork Scrim) -->
+        <FrameLayout
             android:id="@+id/stage_hero_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="horizontal"
-            android:paddingStart="36dp"
+            android:paddingStart="40dp"
             android:paddingTop="8dp"
-            android:paddingEnd="36dp"
-            android:paddingBottom="8dp">
+            android:paddingEnd="40dp"
+            android:paddingBottom="6dp">
 
-            <!-- LEFT: FEATURED APP SPOTLIGHT & METADATA (Expansive, Generous Breathing Room) -->
-            <LinearLayout
-                android:id="@+id/container_app_spotlight"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1.3"
-                android:gravity="center_vertical"
-                android:orientation="vertical"
-                android:paddingEnd="28dp">
-
-                <!-- App Artwork Showcase (Banner or High-Res Icon Frame) -->
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp">
-
-                    <!-- Wide TV Banner Image (if available) -->
-                    <ImageView
-                        android:id="@+id/hero_app_banner"
-                        android:layout_width="260dp"
-                        android:layout_height="146dp"
-                        android:scaleType="fitCenter"
-                        android:visibility="gone" />
-
-                    <!-- High-Res App Icon Frame (fallback when banner absent) -->
-                    <FrameLayout
-                        android:id="@+id/hero_app_icon_frame"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:background="@drawable/glass_panel"
-                        android:padding="12dp">
-
-                        <ImageView
-                            android:id="@+id/dossier_app_icon"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/ic_launcher" />
-                    </FrameLayout>
-                </FrameLayout>
-
-                <!-- Featured App Title -->
-                <TextView
-                    android:id="@+id/dossier_app_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-medium"
-                    android:maxLines="1"
-                    android:text="Select an Application"
-                    android:textColor="#FFFFFFFF"
-                    android:textSize="32sp"
-                    android:textStyle="bold" />
-
-                <!-- Category Pill Badge & TV Tag -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/dossier_app_category"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_cyber_tab_selector"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingStart="14dp"
-                        android:paddingTop="4dp"
-                        android:paddingEnd="14dp"
-                        android:paddingBottom="4dp"
-                        android:text="STREAMING ENTERTAINMENT"
-                        android:textColor="#00E5FF"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/dossier_app_package"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:fontFamily="sans-serif"
-                        android:text="1080p Television Optimized"
-                        android:textColor="#809BB0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <!-- Primary Action Hint Button -->
-                <TextView
-                    android:id="@+id/btn_hero_launch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_cyber_button_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:nextFocusUp="@+id/btn_theme_cycle"
-                    android:nextFocusRight="@+id/btn_toggle_hero"
-                    android:nextFocusDown="@+id/recycler_horizontal_shelf"
-                    android:fontFamily="sans-serif-medium"
-                    android:paddingStart="20dp"
-                    android:paddingTop="7dp"
-                    android:paddingEnd="20dp"
-                    android:paddingBottom="7dp"
-                    android:text="▶  OPEN APPLICATION"
-                    android:textColor="@color/btn_text_color_selector"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-            <!-- RIGHT: MEDIA & AMBIENT CORE PREVIEW FRAME (Enclosed in Frosted Glass Panel) -->
+            <!-- WIDESCREEN HERO ARTWORK & PREVIEW STAGE (Right-Aligned Atmospheric Canvas) -->
             <FrameLayout
                 android:id="@+id/container_hero_stage"
-                android:layout_width="0dp"
+                android:layout_width="560dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.0"
-                android:background="@drawable/glass_panel"
-                android:padding="8dp">
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="8dp">
+
+                <!-- Mode 0: Cinematic Landscape Showcase (Default) -->
+                <FrameLayout
+                    android:id="@+id/hero_art_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <!-- High-Resolution Landscape Artwork / Banner -->
+                    <ImageView
+                        android:id="@+id/hero_backdrop_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/bg_hero_cinematic" />
+
+                    <!-- Seamless Horizontal Scrim (Fades artwork into the dark left stage) -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/scrim_hero_horizontal" />
+                </FrameLayout>
 
                 <!-- Mode 1: Optional Kinetic Arc Reactor Visualizer -->
                 <com.aether.launcher.hud.ArcReactorView
                     android:id="@+id/arc_reactor_view"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
 
                 <!-- Mode 2: Docked Live Picture-in-Picture AV Monitor -->
                 <FrameLayout
@@ -275,30 +186,144 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                 </FrameLayout>
+            </FrameLayout>
 
-                <!-- Stage Mode Toggle Button (Top Right of Preview Frame) -->
-                <TextView
-                    android:id="@+id/btn_toggle_hero"
+            <!-- LEFT: FEATURED APP SPOTLIGHT & METADATA (Overlays Left Side with 10-Foot Legibility) -->
+            <LinearLayout
+                android:id="@+id/container_app_spotlight"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="start|center_vertical"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <!-- Floating App Icon Badge & Optional Leanback Banner -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="top|end"
-                    android:layout_margin="6dp"
-                    android:background="@drawable/bg_cyber_button_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:nextFocusUp="@+id/btn_theme_cycle"
-                    android:nextFocusLeft="@+id/btn_hero_launch"
-                    android:nextFocusDown="@+id/recycler_horizontal_shelf"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <FrameLayout
+                        android:id="@+id/hero_app_icon_frame"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/bg_glass_icon_badge"
+                        android:padding="8dp">
+
+                        <ImageView
+                            android:id="@+id/dossier_app_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_launcher" />
+                    </FrameLayout>
+
+                    <ImageView
+                        android:id="@+id/hero_app_banner"
+                        android:layout_width="220dp"
+                        android:layout_height="124dp"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Featured App Title (Large, Crisp 34sp Typography) -->
+                <TextView
+                    android:id="@+id/dossier_app_name"
+                    android:layout_width="560dp"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
-                    android:paddingStart="12dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="4dp"
-                    android:text="▶ LIVE AV"
-                    android:textColor="@color/btn_text_color_selector"
-                    android:textSize="11sp" />
-            </FrameLayout>
-        </LinearLayout>
+                    android:maxLines="1"
+                    android:text="Select an Application"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="34sp"
+                    android:textStyle="bold" />
+
+                <!-- Category Pill Badge & Subtitle Meta Row -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/dossier_app_category"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_cyber_tab_selector"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="12dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="3dp"
+                        android:text="STREAMING ENTERTAINMENT"
+                        android:textColor="#00E5FF"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/dossier_app_package"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="sans-serif"
+                        android:text="1080p Television Optimized"
+                        android:textColor="#88A0B2"
+                        android:textSize="12.5sp" />
+                </LinearLayout>
+
+                <!-- Action Button Row: [ ▶ OPEN APPLICATION ]   [ ⟐ AMBIENT CORE ] -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btn_hero_launch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_cyber_button_selector"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusUp="@+id/btn_theme_cycle"
+                        android:nextFocusRight="@+id/btn_toggle_hero"
+                        android:nextFocusDown="@+id/recycler_horizontal_shelf"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="22dp"
+                        android:paddingTop="8dp"
+                        android:paddingEnd="22dp"
+                        android:paddingBottom="8dp"
+                        android:text="▶  OPEN APPLICATION"
+                        android:textColor="@color/btn_text_color_selector"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/btn_toggle_hero"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/bg_cyber_button_selector"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusUp="@+id/btn_theme_cycle"
+                        android:nextFocusLeft="@+id/btn_hero_launch"
+                        android:nextFocusDown="@+id/recycler_horizontal_shelf"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingStart="16dp"
+                        android:paddingTop="8dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="8dp"
+                        android:text="⟐  AMBIENT CORE"
+                        android:textColor="@color/btn_text_color_selector"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </FrameLayout>
 
         <!-- 3. LOWER SHELF AREA: CATEGORY TABS & HORIZONTAL CAROUSEL -->
         <LinearLayout
@@ -306,8 +331,8 @@
             android:layout_height="wrap_content"
             android:background="#00000000"
             android:orientation="vertical"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
 
             <!-- Category Tabs -->
             <HorizontalScrollView
@@ -352,20 +377,9 @@
             android:paddingEnd="36dp">
 
             <TextView
-                android:id="@+id/txt_bottom_hints"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="sans-serif"
-                android:text="▲ Spotlight   ◀ ▶ Browse Apps   ● Open"
-                android:textColor="#809BB0"
-                android:textSize="12sp" />
-
-            <TextView
                 android:id="@+id/btn_open_apps"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
@@ -375,7 +389,7 @@
                 android:paddingTop="5dp"
                 android:paddingEnd="14dp"
                 android:paddingBottom="5dp"
-                android:text="ALL APPS"
+                android:text="APP MATRIX"
                 android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
 
@@ -383,7 +397,7 @@
                 android:id="@+id/btn_open_arcade"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_marginStart="10dp"
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
@@ -401,6 +415,7 @@
                 android:id="@+id/btn_open_iptv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:background="@drawable/bg_cyber_button_selector"
                 android:clickable="true"
                 android:focusable="true"
@@ -411,6 +426,24 @@
                 android:paddingEnd="14dp"
                 android:paddingBottom="5dp"
                 android:text="LIVE TV"
+                android:textColor="@color/btn_text_color_selector"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/btn_open_terminal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_cyber_button_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@+id/recycler_horizontal_shelf"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="14dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="5dp"
+                android:text="TERMINAL"
                 android:textColor="@color/btn_text_color_selector"
                 android:textSize="11sp" />
         </LinearLayout>
