@@ -75,6 +75,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 import android.media.MediaPlayer;
+import org.json.JSONObject;
+import com.gathin.tvhome.net.AeonixWebSocketClient;
 
 import androidx.annotation.NonNull;
 import androidx.dynamicanimation.animation.FloatPropertyCompat;
@@ -203,6 +205,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView stats;
     private TextView weatherHud;
     private com.gathin.tvhome.hud.WeatherEngine weatherEngine;
+    private AeonixWebSocketClient aeonixClient;
     private List<RaceWeekend.Race> raceCalendar;
     private View racePanel;
     private TextView raceKicker, raceHeadline, raceSessions;
@@ -730,6 +733,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         moduleCards = cfg.moduleCards;
         hiddenApps = new HashSet<>(cfg.hiddenApps);
         libraryExcludedApps = new HashSet<>(cfg.libraryExcludedApps);
+        initAeonixCoreMind();
 
         grid = findViewById(R.id.grid);
         rtlAppGrid = getResources().getBoolean(R.bool.rtl_app_grid);
@@ -1544,6 +1548,165 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             cm.unregisterNetworkCallback(networkCallback);
             cm.unregisterNetworkCallback(vpnCallback);
         }
+        if (aeonixClient != null) {
+            aeonixClient.stop();
+            aeonixClient = null;
+        }
+    }
+
+    private void initAeonixCoreMind() {
+        aeonixClient = new AeonixWebSocketClient(this, new AeonixWebSocketClient.Listener() {
+            @Override
+            public void onConnected() {
+                android.util.Log.i("AeonixLauncher", "Connected to Core Mind (POCO)!");
+                if (stats != null) {
+                    stats.setText("ÆONIX: ONLINE");
+                }
+                if (heroCategoryText != null) {
+                    heroCategoryText.setText("★ SOVEREIGN CORE // ONLINE");
+                }
+            }
+
+            @Override
+            public void onDisconnected(String reason) {
+                android.util.Log.w("AeonixLauncher", "Disconnected from Core Mind: " + reason);
+                if (stats != null) {
+                    stats.setText("ÆONIX: OFFLINE (RECONNECTING...)");
+                }
+                if (heroCategoryText != null) {
+                    heroCategoryText.setText("⚠ OFFLINE STANDBY // LOCAL LAUNCHER ACTIVE");
+                }
+            }
+
+            @Override
+            public void onMessage(String payload) {
+                handleAeonixPayload(payload);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                android.util.Log.e("AeonixLauncher", "Core Mind Error: " + t.getMessage());
+            }
+        });
+        aeonixClient.start();
+    }
+
+    private void handleAeonixPayload(String jsonStr) {
+        try {
+            JSONObject obj = new JSONObject(jsonStr);
+            String type = obj.optString("type");
+            if ("layout_update".equals(type)) {
+                JSONObject surface = obj.optJSONObject("surface_data");
+                if (surface != null) {
+                    String title = surface.optString("title", "ÆONIX PRISM");
+                    String greeting = surface.optString("greeting", "Welcome back, Aadi.");
+                    if (heroName != null) {
+                        heroName.setText(title);
+                    }
+                    if (heroCategoryText != null) {
+                        heroCategoryText.setText("★ " + greeting.toUpperCase(Locale.ROOT));
+                    }
+                }
+            } else if ("sentinel_card".equals(type) || "sentinel_request".equals(type)) {
+                String reqId = obj.optString("request_id");
+                String actionType = obj.optString("action_type");
+                String risk = obj.optString("risk_level", "R3");
+                String target = obj.optString("target", "System");
+                showSentinelApprovalDialog(reqId, actionType, risk, target);
+            } else if ("sentinel_resolved".equals(type)) {
+                String status = obj.optString("status");
+                Toast.makeText(this, "SENTINEL: " + status.toUpperCase(Locale.ROOT), Toast.LENGTH_SHORT).show();
+            } else if ("audio_status".equals(type)) {
+                String status = obj.optString("status");
+                if ("recording".equals(status)) {
+                    if (heroCategoryText != null) {
+                        heroCategoryText.setText("🎙️ LISTENING... [TRANSMITTING RAW PCM]");
+                    }
+                    try {
+                        com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+                    } catch (Exception ignored) {}
+                } else if ("processing".equals(status)) {
+                    if (heroCategoryText != null) {
+                        heroCategoryText.setText("⚡ AADYA THINKING (LOCAL NEURAL ENGINE)...");
+                    }
+                }
+            } else if ("voice_reply".equals(type)) {
+                String query = obj.optString("query");
+                String reply = obj.optString("reply");
+                if (heroName != null && !query.isEmpty()) {
+                    heroName.setText(query.toUpperCase(Locale.ROOT));
+                }
+                if (heroCategoryText != null) {
+                    heroCategoryText.setText("★ AADYA: " + reply.toUpperCase(Locale.ROOT));
+                }
+                try {
+                    com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+                } catch (Exception ignored) {}
+                Toast.makeText(this, "AADYA: " + reply, Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            android.util.Log.e("AeonixLauncher", "Payload parse error: " + e.getMessage());
+        }
+    }
+
+    private void showSentinelApprovalDialog(String reqId, String actionType, String risk, String target) {
+        try {
+            com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp();
+        } catch (Exception ignored) {}
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🛡️ SENTINEL GATE // RISK LEVEL " + risk);
+        builder.setCancelable(false);
+        builder.setMessage("CONSEQUENTIAL ACTION AUTHORIZATION REQUIRED\n\n" +
+                "• Target Asset: " + target + "\n" +
+                "• Action Class: " + actionType + "\n" +
+                "• Security Tier: " + risk + "\n\n" +
+                "Confirm execution on Sovereign Network?\n" +
+                "(Auto-denies in 300 seconds if unconfirmed)");
+
+        builder.setPositiveButton("DENY (SAFE)", (dialog, which) -> {
+            try {
+                com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+            } catch (Exception ignored) {}
+            if (aeonixClient != null) {
+                aeonixClient.sendText("{\"type\":\"sentinel_action\",\"request_id\":\"" + reqId + "\",\"approved\":false}");
+            }
+        });
+
+        builder.setNegativeButton("APPROVE", (dialog, which) -> {
+            try {
+                com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+            } catch (Exception ignored) {}
+            if (aeonixClient != null) {
+                aeonixClient.sendText("{\"type\":\"sentinel_action\",\"request_id\":\"" + reqId + "\",\"approved\":true}");
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(d -> {
+            // Safety Mandate: Default primary focus is DENY to prevent accidental execution
+            android.widget.Button denyBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            android.widget.Button approveBtn = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            if (denyBtn != null) {
+                denyBtn.setTextColor(Color.parseColor("#FF5555"));
+                denyBtn.requestFocus();
+            }
+            if (approveBtn != null) {
+                approveBtn.setTextColor(Color.parseColor("#00E5FF"));
+            }
+        });
+
+        // 300-second auto-timeout
+        handler.postDelayed(() -> {
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+                if (aeonixClient != null) {
+                    aeonixClient.sendText("{\"type\":\"sentinel_action\",\"request_id\":\"" + reqId + "\",\"approved\":false}");
+                }
+            }
+        }, 300000);
+
+        dialog.show();
     }
 
     /**
@@ -1578,8 +1741,25 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      */
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            int code = event.getKeyCode();
+        int action = event.getAction();
+        int code = event.getKeyCode();
+
+        // Push-to-Talk (PTT) Mic key handling
+        if (code == KeyEvent.KEYCODE_SEARCH || code == KeyEvent.KEYCODE_VOICE_ASSIST) {
+            if (action == KeyEvent.ACTION_DOWN) {
+                if (aeonixClient != null && !aeonixClient.isVoiceRecording()) {
+                    aeonixClient.startVoiceRecording();
+                    return true;
+                }
+            } else if (action == KeyEvent.ACTION_UP) {
+                if (aeonixClient != null && aeonixClient.isVoiceRecording()) {
+                    aeonixClient.stopVoiceRecording();
+                    return true;
+                }
+            }
+        }
+
+        if (action == KeyEvent.ACTION_DOWN) {
             if (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE) {
                 if (iptvOverlay != null && iptvOverlay.getVisibility() == View.VISIBLE) {
                     if (iptvFullscreenMode) {
@@ -1651,7 +1831,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (!reordering) return super.dispatchKeyEvent(event);
         if (dockEditing) return dispatchDockEdit(event);
         boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
-        int code = event.getKeyCode();
+        code = event.getKeyCode();
         boolean ok = code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER
                 || code == KeyEvent.KEYCODE_NUMPAD_ENTER;
         boolean back = code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE;

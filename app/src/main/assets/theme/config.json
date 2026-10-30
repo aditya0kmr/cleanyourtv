@@ -43,7 +43,7 @@
   "library_button": true,
   "tile_menu": true,
   "fade_rows": true,
-  "home_idle_clock_minutes": 2,
+  "home_idle_clock_minutes": 0,
   "clock_glow": true,
   "clock_wallpaper": true,
   "clock_wallpaper_dim": 40,
