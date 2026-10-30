@@ -2253,7 +2253,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         try {
             iptvVideoView.stopPlayback();
-            iptvVideoView.setVideoURI(Uri.parse(channel.getUrl()));
+            Map<String, String> headers = new HashMap<>();
+            headers.put("User-Agent", "Mozilla/5.0 (Android TV; AETHER)");
+            iptvVideoView.setVideoURI(Uri.parse(channel.getUrl()), headers);
             iptvVideoView.start();
         } catch (Exception e) {
             if (iptvBufferingHud != null) iptvBufferingHud.setVisibility(View.GONE);
