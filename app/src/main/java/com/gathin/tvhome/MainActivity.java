@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -64,6 +65,7 @@ import android.view.Window;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.FrameLayout;
+import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -199,6 +201,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean lunar;
     private int lunarOffset;
     private TextView stats;
+    private TextView weatherHud;
+    private com.gathin.tvhome.hud.WeatherEngine weatherEngine;
     private List<RaceWeekend.Race> raceCalendar;
     private View racePanel;
     private TextView raceKicker, raceHeadline, raceSessions;
@@ -576,6 +580,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 updateTerminalSpecs();
             });
         }
+        View btnUnhideApps = findViewById(R.id.btnUnhideApps);
+        if (btnUnhideApps != null) {
+            btnUnhideApps.setOnClickListener(v -> unhideAllPackages());
+        }
 
         // Initialize IPTV Stream Deck
         iptvOverlay = findViewById(R.id.iptvOverlay);
@@ -598,6 +606,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View btnCloseIptv = findViewById(R.id.btnCloseIptv);
         if (btnCloseIptv != null) {
             btnCloseIptv.setOnClickListener(v -> hideOverlays());
+        }
+        View btnSearchIptv = findViewById(R.id.btnSearchIptv);
+        if (btnSearchIptv != null) {
+            btnSearchIptv.setOnClickListener(v -> showIptvSearchDialog());
+        }
+        View btnAddM3uUrl = findViewById(R.id.btnAddM3uUrl);
+        if (btnAddM3uUrl != null) {
+            btnAddM3uUrl.setOnClickListener(v -> showCustomM3uDialog());
         }
         View btnIptvFullscreen = findViewById(R.id.btnIptvFullscreen);
         if (btnIptvFullscreen != null) {
@@ -660,6 +676,28 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 }
             });
         }
+        weatherHud = findViewById(R.id.weatherHud);
+        if (weatherHud != null) {
+            weatherHud.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(120).start();
+                    com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+                }
+            });
+            weatherHud.setOnClickListener(v -> {
+                com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+                weatherHud.setText("ATMOS // REFRESHING...");
+                if (weatherEngine != null) weatherEngine.refresh();
+            });
+        }
+        weatherEngine = new com.gathin.tvhome.hud.WeatherEngine(this);
+        weatherEngine.start((weatherText, tempCelsius, condition, city) -> {
+            if (weatherHud != null) {
+                weatherHud.setText(weatherText);
+            }
+        });
         raceCalendar = cfg.raceCalendar;
         racePanel = findViewById(R.id.racePanel);
         raceKicker = findViewById(R.id.raceKicker);
@@ -1495,6 +1533,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (weatherEngine != null) weatherEngine.stop();
         if (gameDay != null) gameDay.shutdown();
         unregisterReceiver(packageReceiver);
         wallpaperPlayer.close();
@@ -2326,6 +2365,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             });
         }
 
+        loadIptvChannelsAsync();
+    }
+
+    private void loadIptvChannelsAsync() {
         new Thread(() -> {
             List<com.gathin.tvhome.iptv.Channel> channels = com.gathin.tvhome.iptv.M3uParser.loadChannels(MainActivity.this);
             Map<String, List<com.gathin.tvhome.iptv.Channel>> grouped = com.gathin.tvhome.iptv.M3uParser.groupByCategory(channels);
@@ -2341,6 +2384,107 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 selectIptvCategory("ALL");
             });
         }).start();
+    }
+
+    private void showIptvSearchDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setTitle("SEARCH CHANNELS");
+        final EditText input = new EditText(this);
+        input.setHint("Channel name, category, or country");
+        input.setTextColor(0xFFFFFFFF);
+        input.setHintTextColor(0x88FFFFFF);
+        builder.setView(input);
+
+        builder.setPositiveButton("SEARCH", (dialog, which) -> {
+            String query = input.getText().toString().trim().toLowerCase(Locale.ROOT);
+            filterIptvChannels(query);
+        });
+        builder.setNeutralButton("CLEAR", (dialog, which) -> {
+            selectIptvCategory("ALL");
+        });
+        builder.setNegativeButton("CANCEL", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void filterIptvChannels(String query) {
+        if (query.isEmpty()) {
+            selectIptvCategory("ALL");
+            return;
+        }
+        List<com.gathin.tvhome.iptv.Channel> filtered = new ArrayList<>();
+        for (com.gathin.tvhome.iptv.Channel c : iptvAllChannels) {
+            if (c.getName().toLowerCase(Locale.ROOT).contains(query)
+                    || c.getCategory().toLowerCase(Locale.ROOT).contains(query)
+                    || c.getCountry().toLowerCase(Locale.ROOT).contains(query)) {
+                filtered.add(c);
+            }
+        }
+        iptvCurrentCategory = "SEARCH";
+        if (iptvAdapter != null) {
+            iptvAdapter.setChannels(filtered);
+            iptvAdapter.setSelectedPosition(0);
+        }
+        if (iptvChannelCount != null) {
+            iptvChannelCount.setText(filtered.size() + " MATCHES");
+        }
+        Toast.makeText(this, filtered.size() + " channels found for '" + query + "'", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showCustomM3uDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setTitle("CUSTOM M3U PLAYLIST");
+        builder.setMessage("Enter direct M3U/M3U8 playlist URL, or restore default:");
+        final EditText input = new EditText(this);
+        input.setHint("https://.../playlist.m3u");
+        input.setTextColor(0xFFFFFFFF);
+        input.setHintTextColor(0x88FFFFFF);
+        builder.setView(input);
+
+        builder.setPositiveButton("DOWNLOAD & LOAD", (dialog, which) -> {
+            String url = input.getText().toString().trim();
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                Toast.makeText(this, "DOWNLOADING M3U...", Toast.LENGTH_SHORT).show();
+                new Thread(() -> {
+                    boolean success = com.gathin.tvhome.iptv.M3uParser.savePlaylistFromUrl(MainActivity.this, url);
+                    runOnUiThread(() -> {
+                        if (success) {
+                            Toast.makeText(MainActivity.this, "M3U LOADED SUCCESSFULLY", Toast.LENGTH_SHORT).show();
+                            loadIptvChannelsAsync();
+                        } else {
+                            Toast.makeText(MainActivity.this, "FAILED TO DOWNLOAD M3U", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }).start();
+            } else {
+                Toast.makeText(this, "INVALID URL", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNeutralButton("RESTORE DEFAULT", (dialog, which) -> {
+            com.gathin.tvhome.iptv.M3uParser.restoreDefaultPlaylist(MainActivity.this);
+            Toast.makeText(this, "RESTORED BUILT-IN PLAYLIST", Toast.LENGTH_SHORT).show();
+            loadIptvChannelsAsync();
+        });
+        builder.setNegativeButton("CANCEL", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void hidePackage(String pkg, String label) {
+        SharedPreferences sp = getSharedPreferences("aether_prefs", Context.MODE_PRIVATE);
+        Set<String> set = new HashSet<>(sp.getStringSet("hidden_packages", Collections.emptySet()));
+        set.add(pkg);
+        sp.edit().putStringSet("hidden_packages", set).apply();
+        Toast.makeText(this, "HIDDEN: " + label, Toast.LENGTH_SHORT).show();
+        reloadApps(false);
+    }
+
+    private void unhideAllPackages() {
+        SharedPreferences sp = getSharedPreferences("aether_prefs", Context.MODE_PRIVATE);
+        Set<String> set = sp.getStringSet("hidden_packages", Collections.emptySet());
+        int count = set.size();
+        sp.edit().remove("hidden_packages").apply();
+        Toast.makeText(this, "UNHIDDEN " + count + " APPS", Toast.LENGTH_SHORT).show();
+        reloadApps(false);
+        updateTerminalSpecs();
     }
 
     private void updateFavoritesCategory() {
@@ -4253,6 +4397,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // Some firmware has no App info page at all; a row that only toasts "can't open" helps nobody.
         Intent info = SystemSettings.appInfo(this, pkg);
         if (info != null) addSettingsMenuRow(rows, popup, R.string.library_app_info, () -> open(info));
+        addSettingsMenuRow(rows, popup, "HIDE APP [BLOATWARE]", () -> {
+            hidePackage(pkg, adapter.labelAt(position));
+        });
         panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         popup.setWidth(Math.max((int) (200 * density), panel.getMeasuredWidth()));
         // Dock tiles sit near the bottom of the screen: open the menu above the tile when it would not fit below.
@@ -4274,6 +4421,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private void addSettingsMenuRow(LinearLayout rows, PopupWindow popup, int title, Runnable action) {
+        addSettingsMenuRow(rows, popup, getText(title), action);
+    }
+
+    private void addSettingsMenuRow(LinearLayout rows, PopupWindow popup, CharSequence title, Runnable action) {
         View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
         row.findViewById(R.id.icon).setVisibility(View.GONE);
         row.findViewById(R.id.dot).setVisibility(View.GONE);

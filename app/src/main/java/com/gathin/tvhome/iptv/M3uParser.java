@@ -6,8 +6,11 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -166,5 +169,49 @@ public final class M3uParser {
             list.add(c);
         }
         return map;
+    }
+
+    /**
+     * Downloads an M3U playlist from a remote URL and caches it in the app's external files dir.
+     */
+    public static boolean savePlaylistFromUrl(Context context, String urlString) {
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(urlString);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(15000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android TV; AETHER)");
+            if (conn.getResponseCode() == 200) {
+                File target = new File(context.getExternalFilesDir(null), "iptv.m3u");
+                try (InputStream in = conn.getInputStream();
+                     FileOutputStream out = new FileOutputStream(target)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+                    out.flush();
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to download M3U: " + e.getMessage());
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return false;
+    }
+
+    /**
+     * Deletes the custom M3U playlist file so the player falls back to built-in assets.
+     */
+    public static boolean restoreDefaultPlaylist(Context context) {
+        File target = new File(context.getExternalFilesDir(null), "iptv.m3u");
+        if (target.exists()) {
+            return target.delete();
+        }
+        return true;
     }
 }
