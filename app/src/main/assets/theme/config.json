@@ -1,4 +1,6 @@
 {
+  "stock_home_redirect": "com.amazon.tv.launcher",
+  "restore_key_services": true,
   "dock_apps": [
     "com.amazon.firetv.youtube",
     "com.amazon.avod",
