@@ -21,8 +21,17 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Ultra-Lightweight Sovereign WebSocket Client (<100KB RAM overhead)
@@ -52,6 +61,70 @@ public class AeonixWebSocketClient {
             Log.w(TAG, "Failed to load provisioned token: " + e.getMessage());
         }
         return "";
+    }
+
+    public String loadPinnedFingerprint() {
+        try {
+            File pinFile = new File(context.getFilesDir(), "auth/cert_pin.json");
+            if (pinFile.exists() && pinFile.canRead()) {
+                byte[] data = new byte[(int) pinFile.length()];
+                try (FileInputStream fis = new FileInputStream(pinFile)) {
+                    int read = fis.read(data);
+                    if (read > 0) {
+                        JSONObject obj = new JSONObject(new String(data, 0, read, StandardCharsets.UTF_8));
+                        return obj.optString("sha256_fingerprint", "").trim();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load pinned certificate fingerprint: " + e.getMessage());
+        }
+        return "";
+    }
+
+    private SSLSocketFactory getPinnedSSLSocketFactory(String expectedFingerprint) throws Exception {
+        TrustManager[] trustManagers = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                    if (chain == null || chain.length == 0) {
+                        throw new CertificateException("Empty certificate chain");
+                    }
+                    X509Certificate cert = chain[0];
+                    try {
+                        MessageDigest md = MessageDigest.getInstance("SHA-256");
+                        byte[] der = cert.getEncoded();
+                        byte[] digest = md.digest(der);
+                        StringBuilder sb = new StringBuilder();
+                        for (byte b : digest) {
+                            sb.append(String.format("%02X", b));
+                        }
+                        String actualFingerprint = sb.toString();
+                        if (expectedFingerprint != null && !expectedFingerprint.isEmpty()) {
+                            String cleanExpected = expectedFingerprint.replaceAll("[:\\s]", "").toUpperCase();
+                            if (!actualFingerprint.equalsIgnoreCase(cleanExpected)) {
+                                throw new CertificateException("Certificate pin mismatch! Expected " + cleanExpected + " but got " + actualFingerprint);
+                            }
+                        }
+                    } catch (Exception e) {
+                        if (e instanceof CertificateException) throw (CertificateException) e;
+                        throw new CertificateException("Error verifying certificate fingerprint", e);
+                    }
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            }
+        };
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustManagers, new SecureRandom());
+        return sslContext.getSocketFactory();
     }
 
     public interface Listener {
@@ -250,9 +323,20 @@ public class AeonixWebSocketClient {
     }
 
     private void connectAndListen() throws Exception {
-        socket = new Socket();
-        socket.connect(new InetSocketAddress(targetHost, targetPort), 5000);
-        socket.setTcpNoDelay(true);
+        String pinnedFp = loadPinnedFingerprint();
+        if (!pinnedFp.isEmpty() || targetPort == 8443) {
+            Log.i(TAG, "Initiating Sovereign TLS Handshake with certificate pinning");
+            SSLSocketFactory sslFactory = getPinnedSSLSocketFactory(pinnedFp);
+            SSLSocket sslSocket = (SSLSocket) sslFactory.createSocket();
+            sslSocket.connect(new InetSocketAddress(targetHost, targetPort), 5000);
+            sslSocket.setTcpNoDelay(true);
+            sslSocket.startHandshake();
+            socket = sslSocket;
+        } else {
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(targetHost, targetPort), 5000);
+            socket.setTcpNoDelay(true);
+        }
 
         InputStream in = socket.getInputStream();
         outStream = socket.getOutputStream();
