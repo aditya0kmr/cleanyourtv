@@ -11,11 +11,16 @@ import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,7 +34,25 @@ public class AeonixWebSocketClient {
     private static final String DEFAULT_HOST = "10.116.23.168";
     private static final int DEFAULT_PORT = 8080;
     private static final String SERVICE_TYPE = "_aeonix._tcp.";
-    private static final String DEFAULT_AUTH_TOKEN = "eyJkZXZpY2VfaWQiOiAiZmlyZXR2X3N0aWNrX2xpdGUiLCAiZXhwaXJlc19hdCI6IDIxMDg4MDM2MjMuNjcsICJpc3N1ZWRfYXQiOiAxNzkzNDQzNjIzLjY3LCAibm9uY2UiOiAiMWEyZjNiMzg0MzhlMDQwZjIzZjE2OTJiIiwgInJvbGUiOiAiRklSRVRWX0dMQVNTIn0.SJivY8ki1k7gnXTL7Kz8bMZhttYIpVsuJ7FvytEK--I";
+
+    public String loadProvisionedToken() {
+        try {
+            File authFile = new File(context.getFilesDir(), "auth/glass_token.json");
+            if (authFile.exists() && authFile.canRead()) {
+                byte[] data = new byte[(int) authFile.length()];
+                try (FileInputStream fis = new FileInputStream(authFile)) {
+                    int read = fis.read(data);
+                    if (read > 0) {
+                        JSONObject obj = new JSONObject(new String(data, 0, read, StandardCharsets.UTF_8));
+                        return obj.optString("token", "").trim();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load provisioned token: " + e.getMessage());
+        }
+        return "";
+    }
 
     public interface Listener {
         void onConnected();
@@ -234,16 +257,22 @@ public class AeonixWebSocketClient {
         InputStream in = socket.getInputStream();
         outStream = socket.getOutputStream();
 
-        // Perform RFC 6455 Handshake
+        // Load provisioned token from secure app storage
+        String token = loadProvisionedToken();
+        if (token.isEmpty()) {
+            throw new IllegalStateException("NO_PROVISIONED_CREDENTIAL: Glass terminal token not found in app storage");
+        }
+
+        // Perform RFC 6455 Handshake with header-based authorization
         byte[] nonce = new byte[16];
         new SecureRandom().nextBytes(nonce);
         String secKey = Base64.encodeToString(nonce, Base64.NO_WRAP);
 
-        String handshake = "GET /ws?token=" + DEFAULT_AUTH_TOKEN + " HTTP/1.1\r\n" +
+        String handshake = "GET /ws HTTP/1.1\r\n" +
                 "Host: " + targetHost + ":" + targetPort + "\r\n" +
                 "Upgrade: websocket\r\n" +
                 "Connection: Upgrade\r\n" +
-                "Authorization: Bearer " + DEFAULT_AUTH_TOKEN + "\r\n" +
+                "Authorization: Bearer " + token + "\r\n" +
                 "Sec-WebSocket-Key: " + secKey + "\r\n" +
                 "Sec-WebSocket-Version: 13\r\n\r\n";
 
