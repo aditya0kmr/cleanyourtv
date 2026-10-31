@@ -163,8 +163,14 @@ public class AeonixWebSocketClient {
 
                 audioRecord.startRecording();
                 byte[] audioBuf = new byte[2048];
+                long recordStartTime = System.currentTimeMillis();
+                long maxRecordingDurationMs = 15000; // Hard bounded at 15 seconds to prevent runaway buffering
 
                 while (isRecording.get()) {
+                    if (System.currentTimeMillis() - recordStartTime > maxRecordingDurationMs) {
+                        Log.w(TAG, "Audio recording hit 15s safety duration ceiling. Terminating stream.");
+                        break;
+                    }
                     int read = audioRecord.read(audioBuf, 0, audioBuf.length);
                     if (read > 0) {
                         byte[] chunk = new byte[read];
