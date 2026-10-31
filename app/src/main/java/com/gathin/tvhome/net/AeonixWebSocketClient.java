@@ -29,6 +29,7 @@ public class AeonixWebSocketClient {
     private static final String DEFAULT_HOST = "10.116.23.168";
     private static final int DEFAULT_PORT = 8080;
     private static final String SERVICE_TYPE = "_aeonix._tcp.";
+    private static final String DEFAULT_AUTH_TOKEN = "eyJkZXZpY2VfaWQiOiAiZmlyZXR2X3N0aWNrX2xpdGUiLCAiZXhwaXJlc19hdCI6IDIxMDg4MDM2MjMuNjcsICJpc3N1ZWRfYXQiOiAxNzkzNDQzNjIzLjY3LCAibm9uY2UiOiAiMWEyZjNiMzg0MzhlMDQwZjIzZjE2OTJiIiwgInJvbGUiOiAiRklSRVRWX0dMQVNTIn0.SJivY8ki1k7gnXTL7Kz8bMZhttYIpVsuJ7FvytEK--I";
 
     public interface Listener {
         void onConnected();
@@ -238,10 +239,11 @@ public class AeonixWebSocketClient {
         new SecureRandom().nextBytes(nonce);
         String secKey = Base64.encodeToString(nonce, Base64.NO_WRAP);
 
-        String handshake = "GET /ws HTTP/1.1\r\n" +
+        String handshake = "GET /ws?token=" + DEFAULT_AUTH_TOKEN + " HTTP/1.1\r\n" +
                 "Host: " + targetHost + ":" + targetPort + "\r\n" +
                 "Upgrade: websocket\r\n" +
                 "Connection: Upgrade\r\n" +
+                "Authorization: Bearer " + DEFAULT_AUTH_TOKEN + "\r\n" +
                 "Sec-WebSocket-Key: " + secKey + "\r\n" +
                 "Sec-WebSocket-Version: 13\r\n\r\n";
 
