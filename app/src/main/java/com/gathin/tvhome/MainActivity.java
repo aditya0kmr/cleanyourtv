@@ -1782,42 +1782,44 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("🛡️ SENTINEL GATE // RISK LEVEL " + risk);
         builder.setCancelable(false);
-        builder.setMessage("CONSEQUENTIAL ACTION AUTHORIZATION REQUIRED\n\n" +
+        builder.setMessage("CONSEQUENTIAL ACTION HALTED AT SENTINEL GATE\n\n" +
                 "• Target Asset: " + target + "\n" +
                 "• Action Class: " + actionType + "\n" +
                 "• Security Tier: " + risk + "\n\n" +
-                "Confirm execution on Sovereign Network?\n" +
-                "(Auto-denies in 300 seconds if unconfirmed)");
+                "⚠️ APPROVAL AUTHORITY: RESTRICTED TO POCO CORE MIND.\n" +
+                "Open POCO phone to review parameters & sign execution order.\n" +
+                "(Fire TV terminal is authorized to safely cancel/deny below)\n" +
+                "Auto-denies in 300 seconds if unconfirmed.");
 
-        builder.setPositiveButton("DENY (SAFE)", (dialog, which) -> {
+        builder.setPositiveButton("DENY / CANCEL (SAFE)", (dialog, which) -> {
             try {
                 com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
             } catch (Exception ignored) {}
             if (aeonixClient != null) {
                 aeonixClient.sendText("{\"type\":\"sentinel_action\",\"request_id\":\"" + reqId + "\",\"approved\":false}");
             }
+            Toast.makeText(this, "SENTINEL: OPERATION CANCELLED BY TV", Toast.LENGTH_SHORT).show();
         });
 
-        builder.setNegativeButton("APPROVE", (dialog, which) -> {
+        builder.setNegativeButton("DISMISS HUD (AWAIT POCO)", (dialog, which) -> {
             try {
-                com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+                com.gathin.tvhome.audio.CyberSoundSynth.get().playDataClick();
             } catch (Exception ignored) {}
-            if (aeonixClient != null) {
-                aeonixClient.sendText("{\"type\":\"sentinel_action\",\"request_id\":\"" + reqId + "\",\"approved\":true}");
-            }
+            dialog.dismiss();
+            Toast.makeText(this, "Awaiting approval on POCO Root of Trust...", Toast.LENGTH_SHORT).show();
         });
 
         AlertDialog dialog = builder.create();
         dialog.setOnShowListener(d -> {
             // Safety Mandate: Default primary focus is DENY to prevent accidental execution
             android.widget.Button denyBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            android.widget.Button approveBtn = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            android.widget.Button dismissBtn = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             if (denyBtn != null) {
                 denyBtn.setTextColor(Color.parseColor("#FF5555"));
                 denyBtn.requestFocus();
             }
-            if (approveBtn != null) {
-                approveBtn.setTextColor(Color.parseColor("#00E5FF"));
+            if (dismissBtn != null) {
+                dismissBtn.setTextColor(Color.parseColor("#00E5FF"));
             }
         });
 
