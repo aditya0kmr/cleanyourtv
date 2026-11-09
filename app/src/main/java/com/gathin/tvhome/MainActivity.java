@@ -58,6 +58,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewStub;
 import android.view.SoundEffectConstants;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -543,88 +544,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (!ambientGlow) ambient.setVisibility(View.GONE);
         heroName = findViewById(R.id.heroName);
         heroCategoryText = findViewById(R.id.heroCategoryText);
-        arcadeOverlay = findViewById(R.id.arcadeOverlay);
-        holoArcade = findViewById(R.id.holoArcade);
-        if (holoArcade != null) {
-            holoArcade.setOnExitListener(this::hideOverlays);
-        }
-        terminalOverlay = findViewById(R.id.terminalOverlay);
-        terminalLogText = findViewById(R.id.terminalLogText);
-        View btnCloseTerminal = findViewById(R.id.btnCloseTerminal);
-        if (btnCloseTerminal != null) {
-            btnCloseTerminal.setOnClickListener(v -> hideOverlays());
-        }
-        View btnTrimMemory = findViewById(R.id.btnTrimMemory);
-        if (btnTrimMemory != null) {
-            btnTrimMemory.setOnClickListener(v -> {
-                long before = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                System.gc();
-                long after = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                long reclaimedMb = Math.max(0, (before - after) / (1024 * 1024));
-                com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
-                Toast.makeText(this, "[MEMORY TRIM] RECLAIMED " + reclaimedMb + " MB", Toast.LENGTH_SHORT).show();
-                updateTerminalSpecs();
-            });
-        }
-        View btnTestAudio = findViewById(R.id.btnTestAudio);
-        if (btnTestAudio != null) {
-            btnTestAudio.setOnClickListener(v -> com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp());
-        }
-        View btnConsoleTheme = findViewById(R.id.btnConsoleTheme);
-        if (btnConsoleTheme != null) {
-            btnConsoleTheme.setOnClickListener(v -> {
-                com.gathin.tvhome.hud.HologramTheme.get().cycleNext();
-                applyThemeColors();
-                updateTerminalSpecs();
-            });
-        }
-        View btnConsoleWallpaper = findViewById(R.id.btnConsoleWallpaper);
-        if (btnConsoleWallpaper != null) {
-            btnConsoleWallpaper.setOnClickListener(v -> {
-                cycleWallpaper();
-                updateTerminalSpecs();
-            });
-        }
-        View btnUnhideApps = findViewById(R.id.btnUnhideApps);
-        if (btnUnhideApps != null) {
-            btnUnhideApps.setOnClickListener(v -> unhideAllPackages());
-        }
-
-        // Initialize IPTV Stream Deck
-        iptvOverlay = findViewById(R.id.iptvOverlay);
-        iptvBrowserContainer = findViewById(R.id.iptvBrowserContainer);
-        iptvHeaderRow = findViewById(R.id.iptvHeaderRow);
-        iptvCategoryScroll = findViewById(R.id.iptvCategoryScroll);
-        iptvDivider = findViewById(R.id.iptvDivider);
-        iptvLeftPane = findViewById(R.id.iptvLeftPane);
-        iptvStageFrame = findViewById(R.id.iptvStageFrame);
-        iptvVideoView = findViewById(R.id.iptvVideoView);
-        iptvBufferingHud = findViewById(R.id.iptvBufferingHud);
-        iptvStageHud = findViewById(R.id.iptvStageHud);
-        iptvFullscreenHud = findViewById(R.id.iptvFullscreenHud);
-        iptvCurrentChannelName = findViewById(R.id.iptvCurrentChannelName);
-        iptvFullscreenChannelName = findViewById(R.id.iptvFullscreenChannelName);
-        iptvStreamSpecs = findViewById(R.id.iptvStreamSpecs);
-        iptvChannelCount = findViewById(R.id.iptvChannelCount);
-        iptvChannelsRecycler = findViewById(R.id.iptvChannelsRecycler);
-        iptvCategoryTabs = findViewById(R.id.iptvCategoryTabs);
-        View btnCloseIptv = findViewById(R.id.btnCloseIptv);
-        if (btnCloseIptv != null) {
-            btnCloseIptv.setOnClickListener(v -> hideOverlays());
-        }
-        View btnSearchIptv = findViewById(R.id.btnSearchIptv);
-        if (btnSearchIptv != null) {
-            btnSearchIptv.setOnClickListener(v -> showIptvSearchDialog());
-        }
-        View btnAddM3uUrl = findViewById(R.id.btnAddM3uUrl);
-        if (btnAddM3uUrl != null) {
-            btnAddM3uUrl.setOnClickListener(v -> showCustomM3uDialog());
-        }
-        View btnIptvFullscreen = findViewById(R.id.btnIptvFullscreen);
-        if (btnIptvFullscreen != null) {
-            btnIptvFullscreen.setOnClickListener(v -> toggleIptvFullscreen());
-        }
-        initIptvEngine();
+        // Priority 4 Startup Optimization: Overlays (Arcade, Terminal, IPTV) are lazy-loaded via ViewStub.
+        // Eager inflation removed from cold-start path to minimize initial view count and frame drop.
         hero = findViewById(R.id.hero);
         // The hero is now a group (name, and the cinematic lines): without this every fade of the default
         // shelf would render it through an offscreen buffer first, as the glow above notes.
@@ -2507,6 +2428,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void showArcade() {
         lastFocusedBeforeOverlay = getCurrentFocus();
+        if (arcadeOverlay == null) {
+            ViewStub stub = findViewById(R.id.arcadeOverlayStub);
+            if (stub != null) {
+                arcadeOverlay = stub.inflate();
+                holoArcade = arcadeOverlay.findViewById(R.id.holoArcade);
+                if (holoArcade != null) {
+                    holoArcade.setOnExitListener(this::hideOverlays);
+                }
+            }
+        }
         if (arcadeOverlay != null) {
             arcadeOverlay.setVisibility(View.VISIBLE);
             if (holoArcade != null) {
@@ -2518,6 +2449,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void showTerminal() {
         lastFocusedBeforeOverlay = getCurrentFocus();
+        if (terminalOverlay == null) {
+            ViewStub stub = findViewById(R.id.terminalOverlayStub);
+            if (stub != null) {
+                terminalOverlay = stub.inflate();
+                terminalLogText = terminalOverlay.findViewById(R.id.terminalLogText);
+                View btnCloseTerminal = terminalOverlay.findViewById(R.id.btnCloseTerminal);
+                if (btnCloseTerminal != null) {
+                    btnCloseTerminal.setOnClickListener(v -> hideOverlays());
+                }
+                wireTerminalActions();
+            }
+        }
         if (terminalOverlay != null) {
             updateTerminalSpecs();
             terminalOverlay.setVisibility(View.VISIBLE);
@@ -2527,8 +2470,54 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
     }
 
+    private void wireTerminalActions() {
+        if (terminalOverlay == null) return;
+        View btnTrimMemory = terminalOverlay.findViewById(R.id.btnTrimMemory);
+        if (btnTrimMemory != null) {
+            btnTrimMemory.setOnClickListener(v -> {
+                long before = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                System.gc();
+                long after = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                long reclaimedMb = Math.max(0, (before - after) / (1024 * 1024));
+                com.gathin.tvhome.audio.CyberSoundSynth.get().playPowerUp();
+                Toast.makeText(this, "[MEMORY TRIM] RECLAIMED " + reclaimedMb + " MB", Toast.LENGTH_SHORT).show();
+                updateTerminalSpecs();
+            });
+        }
+        View btnTestAudio = terminalOverlay.findViewById(R.id.btnTestAudio);
+        if (btnTestAudio != null) {
+            btnTestAudio.setOnClickListener(v -> com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp());
+        }
+        View btnConsoleTheme = terminalOverlay.findViewById(R.id.btnConsoleTheme);
+        if (btnConsoleTheme != null) {
+            btnConsoleTheme.setOnClickListener(v -> {
+                com.gathin.tvhome.hud.HologramTheme.get().cycleNext();
+                applyThemeColors();
+                updateTerminalSpecs();
+            });
+        }
+        View btnConsoleWallpaper = terminalOverlay.findViewById(R.id.btnConsoleWallpaper);
+        if (btnConsoleWallpaper != null) {
+            btnConsoleWallpaper.setOnClickListener(v -> {
+                cycleWallpaper();
+                updateTerminalSpecs();
+            });
+        }
+        View btnUnhideApps = terminalOverlay.findViewById(R.id.btnUnhideApps);
+        if (btnUnhideApps != null) {
+            btnUnhideApps.setOnClickListener(v -> unhideAllPackages());
+        }
+    }
+
     private void showIptv() {
         lastFocusedBeforeOverlay = getCurrentFocus();
+        if (iptvOverlay == null) {
+            ViewStub stub = findViewById(R.id.iptvOverlayStub);
+            if (stub != null) {
+                iptvOverlay = (FrameLayout) stub.inflate();
+                wireIptvViews();
+            }
+        }
         if (iptvOverlay != null) {
             iptvOverlay.setVisibility(View.VISIBLE);
             if (iptvChannelsRecycler != null && iptvAdapter != null && iptvAdapter.getItemCount() > 0) {
@@ -2539,6 +2528,43 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
             com.gathin.tvhome.audio.CyberSoundSynth.get().playWarp();
         }
+    }
+
+    private void wireIptvViews() {
+        if (iptvOverlay == null) return;
+        iptvBrowserContainer = iptvOverlay.findViewById(R.id.iptvBrowserContainer);
+        iptvHeaderRow = iptvOverlay.findViewById(R.id.iptvHeaderRow);
+        iptvCategoryScroll = iptvOverlay.findViewById(R.id.iptvCategoryScroll);
+        iptvDivider = iptvOverlay.findViewById(R.id.iptvDivider);
+        iptvLeftPane = iptvOverlay.findViewById(R.id.iptvLeftPane);
+        iptvStageFrame = iptvOverlay.findViewById(R.id.iptvStageFrame);
+        iptvVideoView = iptvOverlay.findViewById(R.id.iptvVideoView);
+        iptvBufferingHud = iptvOverlay.findViewById(R.id.iptvBufferingHud);
+        iptvStageHud = iptvOverlay.findViewById(R.id.iptvStageHud);
+        iptvFullscreenHud = iptvOverlay.findViewById(R.id.iptvFullscreenHud);
+        iptvCurrentChannelName = iptvOverlay.findViewById(R.id.iptvCurrentChannelName);
+        iptvFullscreenChannelName = iptvOverlay.findViewById(R.id.iptvFullscreenChannelName);
+        iptvStreamSpecs = iptvOverlay.findViewById(R.id.iptvStreamSpecs);
+        iptvChannelCount = iptvOverlay.findViewById(R.id.iptvChannelCount);
+        iptvChannelsRecycler = iptvOverlay.findViewById(R.id.iptvChannelsRecycler);
+        iptvCategoryTabs = iptvOverlay.findViewById(R.id.iptvCategoryTabs);
+        View btnCloseIptv = iptvOverlay.findViewById(R.id.btnCloseIptv);
+        if (btnCloseIptv != null) {
+            btnCloseIptv.setOnClickListener(v -> hideOverlays());
+        }
+        View btnSearchIptv = iptvOverlay.findViewById(R.id.btnSearchIptv);
+        if (btnSearchIptv != null) {
+            btnSearchIptv.setOnClickListener(v -> showIptvSearchDialog());
+        }
+        View btnAddM3uUrl = iptvOverlay.findViewById(R.id.btnAddM3uUrl);
+        if (btnAddM3uUrl != null) {
+            btnAddM3uUrl.setOnClickListener(v -> showCustomM3uDialog());
+        }
+        View btnIptvFullscreen = iptvOverlay.findViewById(R.id.btnIptvFullscreen);
+        if (btnIptvFullscreen != null) {
+            btnIptvFullscreen.setOnClickListener(v -> toggleIptvFullscreen());
+        }
+        initIptvEngine();
     }
 
     private void stopIptvPlayback() {
