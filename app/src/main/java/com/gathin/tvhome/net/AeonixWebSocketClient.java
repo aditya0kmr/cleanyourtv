@@ -44,6 +44,29 @@ public class AeonixWebSocketClient {
     private static final int DEFAULT_PORT = 8080;
     private static final String SERVICE_TYPE = "_aeonix._tcp.";
 
+    public String loadProvisionedHost() {
+        if (context == null) return "";
+        try {
+            File endpointFile = new File(context.getFilesDir(), "auth/endpoint.json");
+            if (endpointFile.exists() && endpointFile.canRead()) {
+                byte[] data = new byte[(int) endpointFile.length()];
+                try (FileInputStream fis = new FileInputStream(endpointFile)) {
+                    int read = fis.read(data);
+                    if (read > 0) {
+                        JSONObject obj = new JSONObject(new String(data, 0, read, StandardCharsets.UTF_8));
+                        String h = obj.optString("host", "").trim();
+                        int p = obj.optInt("port", 0);
+                        if (p > 0) targetPort = p;
+                        if (!h.isEmpty()) return h;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load provisioned host: " + e.getMessage());
+        }
+        return "";
+    }
+
     public String loadProvisionedToken() {
         try {
             File authFile = new File(context.getFilesDir(), "auth/glass_token.json");
@@ -134,6 +157,7 @@ public class AeonixWebSocketClient {
         void onDisconnected(String reason);
         void onMessage(String payload);
         void onError(Throwable t);
+        default void onBinaryMessage(byte[] payload) {}
     }
 
     private final Context context;
@@ -325,6 +349,11 @@ public class AeonixWebSocketClient {
     }
 
     private void connectAndListen() throws Exception {
+        String provHost = loadProvisionedHost();
+        if (provHost != null && !provHost.isEmpty()) {
+            targetHost = provHost;
+        }
+
         String pinnedFp = loadPinnedFingerprint();
         if (pinnedFp == null || pinnedFp.trim().isEmpty()) {
             throw new IllegalStateException("NO_PIN_PROVISIONED: Sovereign glass terminal strictly mandates a valid provisioned certificate pin. Plaintext fallback prohibited.");
@@ -433,6 +462,8 @@ public class AeonixWebSocketClient {
             if (opcode == 0x1) { // Text
                 String text = new String(payload, "UTF-8");
                 notifyMessage(text);
+            } else if (opcode == 0x2) { // Binary
+                notifyBinaryMessage(payload);
             } else if (opcode == 0x9) { // Ping
                 sendPong(payload);
             } else if (opcode == 0x8) { // Close
@@ -533,5 +564,13 @@ public class AeonixWebSocketClient {
 
     private void notifyMessage(String msg) {
         mainHandler.post(() -> listener.onMessage(msg));
+    }
+
+    private void notifyBinaryMessage(byte[] data) {
+        try {
+            listener.onBinaryMessage(data);
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onBinaryMessage listener: " + e.getMessage());
+        }
     }
 }

@@ -208,6 +208,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView weatherHud;
     private com.gathin.tvhome.hud.WeatherEngine weatherEngine;
     private AeonixWebSocketClient aeonixClient;
+    private com.gathin.tvhome.voice.VoiceAudioPlayer voiceAudioPlayer;
     private boolean isSanctuaryActive = false;
     private List<RaceWeekend.Race> raceCalendar;
     private View racePanel;
@@ -1475,9 +1476,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             aeonixClient.stop();
             aeonixClient = null;
         }
+        if (voiceAudioPlayer != null) {
+            voiceAudioPlayer.release();
+            voiceAudioPlayer = null;
+        }
     }
 
     private void initAeonixCoreMind() {
+        voiceAudioPlayer = new com.gathin.tvhome.voice.VoiceAudioPlayer(this);
         aeonixClient = new AeonixWebSocketClient(this, new AeonixWebSocketClient.Listener() {
             @Override
             public void onConnected() {
@@ -1493,6 +1499,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             @Override
             public void onDisconnected(String reason) {
                 android.util.Log.w("AeonixLauncher", "Disconnected from Core Mind: " + reason);
+                if (voiceAudioPlayer != null) {
+                    voiceAudioPlayer.onDisconnected();
+                }
                 if (stats != null) {
                     stats.setText("ÆONIX: OFFLINE (RECONNECTING...)");
                 }
@@ -1503,7 +1512,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
             @Override
             public void onMessage(String payload) {
+                if (payload != null && payload.contains("\"voice_audio_")) {
+                    if (voiceAudioPlayer != null) {
+                        voiceAudioPlayer.handleControlMessage(payload);
+                    }
+                    return;
+                }
                 handleAeonixPayload(payload);
+            }
+
+            @Override
+            public void onBinaryMessage(byte[] payload) {
+                if (voiceAudioPlayer != null) {
+                    voiceAudioPlayer.handleBinaryFrame(payload);
+                }
             }
 
             @Override
